@@ -204,7 +204,11 @@
                         displayModeBar: false 
                     };
 
+                    {% if category == 'poultry' %}
+                    Plotly.newPlot('chart', [trace1], layout, config);
+                    {% else %}
                     Plotly.newPlot('chart', [trace1, trace2], layout, config);
+                    {% endif %}
                 </script>
             {% else %}
                 <div class="py-24 px-6 text-center flex flex-col items-center justify-center">
