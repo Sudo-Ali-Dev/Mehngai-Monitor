@@ -194,6 +194,19 @@ def run_ocr():
         if result:
             # ── Normalize before persisting ──────────────────────────────
             clean = normalize(result)
+            
+            # ── AI Canonicalization ──────────────────────────────────────
+            # Fetch all known names for this category to map inconsistencies
+            with get_conn() as conn:
+                known = conn.execute(
+                    "SELECT DISTINCT item_name FROM market_rates WHERE category = ?",
+                    (row["category"],)
+                ).fetchall()
+                known_names = [n[0] for n in known]
+            
+            from normalizer import canonicalize_names
+            clean["items"] = canonicalize_names(clean["items"], known_names)
+            
             save_to_db(clean, row["date"], row["category"])
             mark_processed(row["url"])
         else:

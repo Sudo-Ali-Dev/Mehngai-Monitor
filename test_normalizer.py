@@ -6,7 +6,45 @@ Run with:
 """
 
 import unittest
-from normalizer import normalize, normalize_unit, normalize_name, validate_price
+from normalizer import normalize, normalize_unit, normalize_name, validate_price, canonicalize_names
+from unittest.mock import patch
+
+
+class TestCanonicalizeNames(unittest.TestCase):
+
+    def test_empty_known_names(self):
+        items = [{"english_name": "New Item"}]
+        result = canonicalize_names(items, [])
+        self.assertEqual(result, items)
+
+    @patch("normalizer._call_gemini_canonicalize")
+    def test_canonicalize_applies_mapping(self, mock_gemini):
+        # Mock Gemini returns {"Guava Awal": "Guava A-Grade"}
+        mock_gemini.return_value = {"Guava Awal": "Guava A-Grade"}
+
+        items = [
+            {"english_name": "Guava Awal", "price_1": 100},
+            {"english_name": "Apple", "price_1": 200}
+        ]
+        known_names = ["Guava A-Grade", "Apple"]
+
+        result = canonicalize_names(items, known_names)
+
+        self.assertEqual(result[0]["english_name"], "Guava A-Grade")
+        self.assertEqual(result[1]["english_name"], "Apple")
+        mock_gemini.assert_called_once_with(["Guava Awal"], known_names)
+
+    @patch("normalizer._call_gemini_canonicalize")
+    def test_unmapped_new_names_untouched(self, mock_gemini):
+        # Gemini decides the new name is genuinely new, returns no mapping
+        mock_gemini.return_value = {}
+
+        items = [{"english_name": "Dragonfruit"}]
+        known_names = ["Apple", "Banana"]
+
+        result = canonicalize_names(items, known_names)
+
+        self.assertEqual(result[0]["english_name"], "Dragonfruit")
 
 
 class TestNormalizeUnit(unittest.TestCase):
