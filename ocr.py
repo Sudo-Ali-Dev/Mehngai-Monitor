@@ -48,6 +48,7 @@ Return this exact JSON structure:
 Important:
 - Extract ALL items, do not skip any rows
 - Keep urdu_name exactly as written in the image
+- USE CONSISTENT ENGLISH NAMES. For example, if it's "Apple Irani", do not write "Apple Iranian". Be strict and simple.
 - price_1 is اول (first/higher quality), price_2 is دوئم (second/lower quality)
 - Return ONLY the JSON, nothing else
 """
@@ -133,8 +134,22 @@ def save_to_db(data: dict, date: str, category: str):
         print("[OCR] No items found in response")
         return
 
+    # Normalization dictionary for common Gemini translation inconsistencies
+    NORMALIZATIONS = {
+        "apple iranian": "Apple Irani",
+        "iranian apple": "Apple Irani",
+        "apple iran": "Apple Irani",
+        "potato regular": "Potato",
+        "tomato regular": "Tomato",
+        "onion regular": "Onion",
+    }
+
     with get_conn() as conn:
         for item in items:
+            raw_name = item.get("english_name", item.get("urdu_name", "unknown")).title()
+            # Standardize the name if it matches our dictionary
+            standardized_name = NORMALIZATIONS.get(raw_name.lower(), raw_name)
+
             conn.execute(
                 """INSERT INTO market_rates
                    (date, category, item_name, min_price, max_price, unit, price_type)
@@ -142,7 +157,7 @@ def save_to_db(data: dict, date: str, category: str):
                 (
                     date,
                     category,
-                    item.get("english_name", item.get("urdu_name", "unknown")),
+                    standardized_name,
                     item.get("price_1"),
                     item.get("price_2"),
                     data.get("unit", "per kg"),

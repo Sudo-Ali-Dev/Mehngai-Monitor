@@ -37,11 +37,11 @@ def index(request: Request, category: str = "fruits"):
                 (category, latest),
             ).fetchall()
 
-        # Get last 5 available dates for this category
+        # Get last 30 available dates for this category
         dates = conn.execute(
             """SELECT DISTINCT date FROM market_rates
                WHERE category = ?
-               ORDER BY date DESC LIMIT 5""",
+               ORDER BY date DESC LIMIT 30""",
             (category,),
         ).fetchall()
 
@@ -69,7 +69,7 @@ def by_date(request: Request, category: str, date: str):
         dates = conn.execute(
             """SELECT DISTINCT date FROM market_rates
                WHERE category = ?
-               ORDER BY date DESC LIMIT 5""",
+               ORDER BY date DESC LIMIT 30""",
             (category,),
         ).fetchall()
 
