@@ -7,7 +7,7 @@ from database import get_unprocessed, mark_processed, get_conn
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
-    "gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY
+    "gemini-3.1-flash-lite-preview:generateContent?key=" + GEMINI_API_KEY
 )
 
 PROMPT = """
@@ -78,8 +78,8 @@ def call_gemini(image_path: str) -> dict | None:
             {
                 "parts": [
                     {
-                        "inline_data": {
-                            "mime_type": mime_type,
+                        "inlineData": {
+                            "mimeType": mime_type,
                             "data": b64_data,
                         }
                     },
