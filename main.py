@@ -29,13 +29,48 @@ def index(request: Request, category: str = "fruits"):
 
         rates = []
         if latest:
-            rates = conn.execute(
+            raw_rates = conn.execute(
                 """SELECT item_name, min_price, max_price, unit
                    FROM market_rates
                    WHERE category = ? AND date = ?
                    ORDER BY item_name""",
                 (category, latest),
             ).fetchall()
+
+            # Get previous date for trend comparison
+            prev_date_row = conn.execute(
+                """SELECT DISTINCT date FROM market_rates
+                   WHERE category = ? AND date < ?
+                   ORDER BY date DESC LIMIT 1""",
+                (category, latest),
+            ).fetchone()
+
+            prev_prices = {}
+            if prev_date_row:
+                prev_rows = conn.execute(
+                    """SELECT item_name, min_price, max_price
+                       FROM market_rates
+                       WHERE category = ? AND date = ?""",
+                    (category, prev_date_row["date"]),
+                ).fetchall()
+                for p in prev_rows:
+                    avg = ((p["min_price"] or 0) + (p["max_price"] or p["min_price"] or 0)) / 2
+                    prev_prices[p["item_name"]] = avg
+
+            rates = []
+            for r in raw_rates:
+                row = dict(r)
+                curr_avg = ((r["min_price"] or 0) + (r["max_price"] or r["min_price"] or 0)) / 2
+                prev_avg = prev_prices.get(r["item_name"])
+                if prev_avg is None or curr_avg == 0:
+                    row["trend"] = "flat"
+                elif curr_avg > prev_avg * 1.005:
+                    row["trend"] = "up"
+                elif curr_avg < prev_avg * 0.995:
+                    row["trend"] = "down"
+                else:
+                    row["trend"] = "flat"
+                rates.append(row)
 
         # Get last 30 available dates for this category
         dates = conn.execute(
@@ -58,13 +93,48 @@ def index(request: Request, category: str = "fruits"):
 @app.get("/date/{category}/{date}", response_class=HTMLResponse)
 def by_date(request: Request, category: str, date: str):
     with get_conn() as conn:
-        rates = conn.execute(
+        raw_rates = conn.execute(
             """SELECT item_name, min_price, max_price, unit
                FROM market_rates
                WHERE category = ? AND date = ?
                ORDER BY item_name""",
             (category, date),
         ).fetchall()
+
+        # Get previous date for trend comparison
+        prev_date_row = conn.execute(
+            """SELECT DISTINCT date FROM market_rates
+               WHERE category = ? AND date < ?
+               ORDER BY date DESC LIMIT 1""",
+            (category, date),
+        ).fetchone()
+
+        prev_prices = {}
+        if prev_date_row:
+            prev_rows = conn.execute(
+                """SELECT item_name, min_price, max_price
+                   FROM market_rates
+                   WHERE category = ? AND date = ?""",
+                (category, prev_date_row["date"]),
+            ).fetchall()
+            for p in prev_rows:
+                avg = ((p["min_price"] or 0) + (p["max_price"] or p["min_price"] or 0)) / 2
+                prev_prices[p["item_name"]] = avg
+
+        rates = []
+        for r in raw_rates:
+            row = dict(r)
+            curr_avg = ((r["min_price"] or 0) + (r["max_price"] or r["min_price"] or 0)) / 2
+            prev_avg = prev_prices.get(r["item_name"])
+            if prev_avg is None or curr_avg == 0:
+                row["trend"] = "flat"
+            elif curr_avg > prev_avg * 1.005:
+                row["trend"] = "up"
+            elif curr_avg < prev_avg * 0.995:
+                row["trend"] = "down"
+            else:
+                row["trend"] = "flat"
+            rates.append(row)
 
         dates = conn.execute(
             """SELECT DISTINCT date FROM market_rates
