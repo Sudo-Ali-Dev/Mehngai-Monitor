@@ -1,0 +1,20 @@
+# API keys - most important
+.env
+
+# Downloaded images (can be large)
+images/
+
+# Database (contains scraped data, regeneratable)
+data/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# VS Code
+.vscode/
+
+# Virtual environment (if you create one)
+venv/
+.venv/
