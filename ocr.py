@@ -3,6 +3,7 @@ import json
 import base64
 import requests
 from database import get_unprocessed, mark_processed, get_conn
+from normalizer import normalize
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_URL = (
@@ -128,43 +129,43 @@ def call_gemini(image_path: str) -> dict | None:
 
 
 def save_to_db(data: dict, date: str, category: str):
-    """Insert extracted items into market_rates table."""
+    """Insert normalized items into market_rates table."""
     items = data.get("items", [])
     if not items:
         print("[OCR] No items found in response")
         return
 
-    # Normalization dictionary for common Gemini translation inconsistencies
-    NORMALIZATIONS = {
-        "apple iranian": "Apple Irani",
-        "iranian apple": "Apple Irani",
-        "apple iran": "Apple Irani",
-        "potato regular": "Potato",
-        "tomato regular": "Tomato",
-        "onion regular": "Onion",
-    }
-
+    inserted = 0
+    skipped  = 0
     with get_conn() as conn:
         for item in items:
-            raw_name = item.get("english_name", item.get("urdu_name", "unknown")).title()
-            # Standardize the name if it matches our dictionary
-            standardized_name = NORMALIZATIONS.get(raw_name.lower(), raw_name)
+            try:
+                conn.execute(
+                    """INSERT OR IGNORE INTO market_rates
+                       (date, category, item_name, min_price, max_price, unit, price_type)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        date,
+                        category,
+                        item["english_name"],
+                        item.get("price_1"),
+                        item.get("price_2"),
+                        data.get("unit", "per kg"),
+                        "retail",
+                    ),
+                )
+                if conn.execute("SELECT changes()").fetchone()[0]:
+                    inserted += 1
+                else:
+                    skipped += 1
+            except Exception as e:
+                print(f"[OCR] DB error for '{item.get('english_name')}': {e}")
 
-            conn.execute(
-                """INSERT INTO market_rates
-                   (date, category, item_name, min_price, max_price, unit, price_type)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    date,
-                    category,
-                    standardized_name,
-                    item.get("price_1"),
-                    item.get("price_2"),
-                    data.get("unit", "per kg"),
-                    "retail",
-                ),
-            )
-    print(f"[OCR] Saved {len(items)} items for {category} on {date}")
+    print(f"[OCR] Saved {inserted} new, skipped {skipped} duplicate rows "
+          f"for {category} on {date}")
+    if data.get("skipped"):
+        print(f"[OCR] Normalizer dropped {len(data['skipped'])} item(s): "
+              f"{[s['name'] for s in data['skipped']]}")
 
 
 def run_ocr():
@@ -191,7 +192,9 @@ def run_ocr():
 
         result = call_gemini(image_path)
         if result:
-            save_to_db(result, row["date"], row["category"])
+            # ── Normalize before persisting ──────────────────────────────
+            clean = normalize(result)
+            save_to_db(clean, row["date"], row["category"])
             mark_processed(row["url"])
         else:
             print(f"[OCR] Failed to process {image_path}")

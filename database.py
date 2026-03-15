@@ -38,6 +38,10 @@ def init_db():
                 price_type  TEXT,               -- retail / wholesale
                 created_at  TEXT    DEFAULT (datetime('now'))
             );
+
+            -- Prevent duplicate rows when OCR is re-run on the same image
+            CREATE UNIQUE INDEX IF NOT EXISTS uq_market_rates_item
+                ON market_rates (date, category, item_name);
         """)
     print("[DB] Tables ready.")
 
