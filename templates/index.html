@@ -201,7 +201,11 @@
             <tbody>
                 {% for row in rates %}
                 <tr>
-                    <td>{{ row.item_name }}</td>
+                    <td>
+                        <a href="/trend/{{ category }}/{{ row.item_name }}" style="color: #1a6e3c; text-decoration: none; font-weight: 500;">
+                            {{ row.item_name }}
+                        </a>
+                    </td>
                     <td>
                         {% if row.min_price %}
                         <span class="price">Rs {{ row.min_price | int }}</span>

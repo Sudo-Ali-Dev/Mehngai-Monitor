@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ item_name }} Trends - Lahore Market Rates</title>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            color: #1a1a1a;
+        }
+
+        header {
+            background: #1a6e3c;
+            color: white;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header h1 { font-size: 1.4rem; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+        header span { font-size: 0.9rem; opacity: 0.8; }
+        
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
+
+        .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 16px;
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a6e3c;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+        }
+
+        #chart {
+            width: 100%;
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>
+        <a href="/?category={{ category }}" class="back-btn">← Back</a>
+        📈 Price Trends
+    </h1>
+    <span>{{ category | capitalize }}</span>
+</header>
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>{{ item_name }} Historical Prices</h2>
+        </div>
+
+        {% if history %}
+            <div id="chart"></div>
+            
+            <script>
+                // Safely load the history data passed from FastAPI/Jinja
+                const historyData = [
+                    {% for row in history %}
+                        {
+                            "date": "{{ row.date }}",
+                            "min_price": {{ row.min_price if row.min_price else 'null' }},
+                            "max_price": {{ row.max_price if row.max_price else 'null' }}
+                        }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ];
+
+                const dates = historyData.map(d => d.date);
+                const price1 = historyData.map(d => d.min_price);
+                const price2 = historyData.map(d => d.max_price);
+
+                const trace1 = {
+                    x: dates,
+                    y: price1,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'Price 1 (اول)',
+                    line: { color: '#1a6e3c', width: 3 },
+                    marker: { size: 8 }
+                };
+
+                const trace2 = {
+                    x: dates,
+                    y: price2,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'Price 2 (دوئم)',
+                    line: { color: '#e67c00', width: 3, dash: 'dot' },
+                    marker: { size: 8 }
+                };
+
+                const layout = {
+                    title: '{{ item_name }} Price Trend',
+                    xaxis: { title: 'Date' },
+                    yaxis: { title: 'Price (Rs {{ "per " + unit if unit else "" }})' },
+                    hovermode: 'x unified',
+                    margin: { t: 40, l: 50, r: 20, b: 50 },
+                    legend: { orientation: 'h', y: -0.2 }
+                };
+
+                const config = { responsive: true, displayModeBar: false };
+
+                Plotly.newPlot('chart', [trace1, trace2], layout, config);
+            </script>
+        {% else %}
+            <div class="empty">
+                <div style="font-size:2.5rem">📭</div>
+                <p>No historical data recorded for {{ item_name }}.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>

@@ -83,6 +83,30 @@ def by_date(request: Request, category: str, date: str):
     })
 
 
+@app.get("/trend/{category}/{item_name}", response_class=HTMLResponse)
+def item_trend(request: Request, category: str, item_name: str):
+    with get_conn() as conn:
+        # Fetch historical prices ordered by date for Charting
+        history = conn.execute(
+            """SELECT date, min_price, max_price, unit
+               FROM market_rates
+               WHERE category = ? AND item_name = ?
+               ORDER BY date ASC""",
+            (category, item_name),
+        ).fetchall()
+
+    # Extract units (usually consistent, we'll take the most recent one if present)
+    unit = history[-1]["unit"] if history else ""
+
+    return templates.TemplateResponse("trend.html", {
+        "request": request,
+        "category": category,
+        "item_name": item_name,
+        "history": history,
+        "unit": unit
+    })
+
+
 # ── Startup ────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
