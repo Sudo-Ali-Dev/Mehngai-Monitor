@@ -21,16 +21,18 @@ _LOG_FILE = os.path.join(_LOG_DIR, "normalization_log.jsonl")
 # Maps substrings (lowercased) to canonical short unit strings.
 # Checked in order — first match wins.
 _UNIT_MAP: list[tuple[str, str]] = [
-    ("per dozen",  "per dozen"),
-    ("dozen",      "per dozen"),
+    # Specific multi-unit poultry strings must be matched FIRST
+    # e.g. "per kg / per dozen / per crate" and "per kg (or per piece/dozen)"
+    # These all reduce to "per kg" as the primary unit.
+    ("per kg",     "per kg"),   # covers all "per kg ..." variants
     ("per 40 kg",  "per 40 kg"),
     ("40 kg",      "per 40 kg"),
     ("40kg",       "per 40 kg"),
     ("per maund",  "per maund"),
     ("maund",      "per maund"),
-    # "per kg" must come before "per piece" — the verbose OCR string
-    # "per kg (or per piece if mentioned)" must resolve to "per kg"
-    ("per kg",     "per kg"),
+    # Only match "per dozen" / "per piece" when kg is NOT present
+    ("per dozen",  "per dozen"),
+    ("dozen",      "per dozen"),
     ("per piece",  "per piece"),
     ("each",       "per piece"),
 ]
