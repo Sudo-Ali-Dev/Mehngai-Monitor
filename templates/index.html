@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,255 +8,196 @@
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            900: '#064e3b',
-                        }
-                    },
-                    animation: {
-                        'fade-in-up': 'fadeInUp 0.5s ease-out',
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: { 'fade-in': 'fadeIn 0.3s ease-out' },
                     keyframes: {
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
                     }
                 }
             }
         }
     </script>
-
     <style>
-        /* Custom scrollbar for webkit */
+        /* Minimal custom scrollbar for webkit */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
+            width: 4px;
+            height: 4px;
         }
 
-        /* Glassmorphism effects */
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        ::-webkit-scrollbar-track {
+            background: transparent;
         }
-        
-        .glass-dark {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        ::-webkit-scrollbar-thumb {
+            background: #e4e4e7;
+            border-radius: 2px;
         }
-        
-        /* Smooth transitions */
-        .transition-all-200 {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1aa;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen selection:bg-brand-500 selection:text-white">
 
-<!-- Header (Glassmorphism) -->
-<header class="sticky top-0 z-50 glass border-b border-slate-200/60 shadow-sm">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-            <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-br from-brand-500 to-brand-700 text-white p-2 rounded-xl shadow-lg shadow-brand-500/30">
-                    <i class="ph ph-shopping-cart text-xl"></i>
+<body class="bg-white text-zinc-900 antialiased min-h-screen selection:bg-zinc-900 selection:text-white">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-14">
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-storefront text-xl text-zinc-900"></i>
+                    <h1 class="text-lg font-bold tracking-tight text-zinc-900 leading-none">Lahore Market</h1>
                 </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none">
-                        Lahore Market
-                    </h1>
-                    <span class="text-xs font-medium text-brand-600 tracking-wider uppercase">Daily Rates Monitor</span>
+                {% if latest_date %}
+                <div class="text-sm font-medium text-zinc-500">
+                    <i class="ph ph-calendar-blank mr-1"></i>{{ latest_date }}
                 </div>
+                {% endif %}
             </div>
-            {% if latest_date %}
-            <div class="hidden sm:flex items-center gap-2 bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200">
-                <i class="ph ph-calendar-blank text-brand-600"></i>
-                {{ latest_date }}
-            </div>
-            {% endif %}
         </div>
-    </div>
-</header>
+    </header>
 
-<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
-    
-    <!-- Controls Section -->
-    <div class="mb-8 space-y-6">
-        
-        <!-- Category Segmented Control -->
-        <div>
-            <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 ml-1">Commodity Type</h3>
-            <div class="inline-flex bg-slate-200/60 rounded-xl p-1.5 gap-1.5 border border-slate-200/80 shadow-inner">
-                {% for cat in categories %}
-                <a href="/?category={{ cat }}"
-                   class="relative px-5 py-2.5 rounded-lg text-sm font-semibold transition-all-200 flex items-center gap-2
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
+
+        <!-- Controls Section -->
+        <div class="mb-10">
+
+            <!-- Category Tabs -->
+            <div class="border-b border-zinc-200 mb-6">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    {% for cat in categories %}
+                    <a href="/?category={{ cat }}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
                    {% if cat == category %}
-                       bg-white text-brand-700 shadow-md ring-1 ring-slate-900/5
+                       border-zinc-900 text-zinc-900
                    {% else %}
-                       text-slate-600 hover:text-slate-900 hover:bg-slate-200/50
+                       border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300
                    {% endif %}">
-                    
-                    {% if cat == 'fruits' %}
-                        <i class="ph-fill ph-apple-logo {% if cat == category %}text-brand-500{% else %}text-slate-400{% endif %} text-lg"></i>
-                    {% elif cat == 'vegetables' %}
-                        <i class="ph-fill ph-carrot {% if cat == category %}text-brand-500{% else %}text-slate-400{% endif %} text-lg"></i>
-                    {% else %}
-                        <i class="ph-fill ph-egg {% if cat == category %}text-brand-500{% else %}text-slate-400{% endif %} text-lg"></i>
-                    {% endif %}
-                    <span class="capitalize">{{ cat }}</span>
-                </a>
-                {% endfor %}
+                        <span class="capitalize">{{ cat }}</span>
+                    </a>
+                    {% endfor %}
+                </nav>
             </div>
-        </div>
 
-        <!-- Date Selector -->
-        {% if dates %}
-        <div>
-            <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 ml-1">Available Dates</h3>
-            <div class="flex overflow-x-auto gap-2.5 pb-2 pt-1 -mx-1 px-1">
-                {% for d in dates %}
-                <a href="/date/{{ category }}/{{ d }}"
-                   class="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all-200 border
+            <!-- Date Selector -->
+            {% if dates %}
+            <div>
+                <div class="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
+                    {% for d in dates %}
+                    <a href="/date/{{ category }}/{{ d }}" class="shrink-0 px-3 py-1.5 rounded-md text-sm transition-colors border border-transparent
                    {% if d == latest_date %}
-                       bg-brand-50 border-brand-200 text-brand-700 shadow-sm ring-1 ring-brand-500/20
+                       bg-zinc-900 text-white font-medium
                    {% else %}
-                       bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900
+                       bg-zinc-50 text-zinc-600 hover:bg-zinc-100 border-zinc-200/50 hover:border-zinc-300 hover:text-zinc-900
                    {% endif %}">
-                    {{ d }}
-                </a>
-                {% endfor %}
+                        {{ d }}
+                    </a>
+                    {% endfor %}
+                </div>
             </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Data Card -->
-    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-        
-        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 capitalize">
-                <i class="ph-duotone ph-list-numbers text-brand-500 text-xl"></i>
-                {{ category }} Prices
-            </h2>
-            {% if rates %}
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold border border-slate-200">
-                <i class="ph-fill ph-tag"></i>
-                {{ rates|length }} items
-            </span>
             {% endif %}
         </div>
 
-        {% if rates %}
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-200">
-                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Item Name</th>
-                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-1/4">Price 1 <span class="text-slate-400 font-medium ml-1">(اول)</span></th>
-                        {% if category != 'poultry' %}
-                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-1/4">Price 2 <span class="text-slate-400 font-medium ml-1">(دوئم)</span></th>
-                        {% endif %}
-                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-32">Unit</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for row in rates %}
-                    <tr class="group hover:bg-brand-50/30 transition-colors duration-150">
-                        <td class="px-6 py-4">
-                            <a href="/trend/{{ category }}/{{ row.item_name }}" 
-                               class="inline-flex items-center gap-2 font-semibold text-slate-800 group-hover:text-brand-600 transition-colors">
-                                {{ row.item_name }}
-                                <i class="ph ph-chart-line-up opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all text-brand-500"></i>
-                            </a>
-                        </td>
-                        <td class="px-6 py-4">
-                            {% if row.min_price %}
-                            <div class="flex items-baseline gap-1.5">
-                                <span class="text-xs font-bold text-slate-400">Rs</span>
-                                <span class="text-[15px] font-bold text-slate-800">{{ row.min_price | int }}</span>
-                            </div>
-                            {% else %}
-                            <span class="text-slate-300 font-medium">—</span>
+        <!-- Data Section -->
+        <div>
+            <div class="flex justify-between items-end mb-4">
+                <h2 class="text-base font-semibold text-zinc-900 capitalize">{{ category }} Prices</h2>
+                {% if rates %}
+                <span class="text-xs text-zinc-500 font-medium">{{ rates|length }} items</span>
+                {% endif %}
+            </div>
+
+            {% if rates %}
+            <div class="overflow-x-auto rounded-lg border border-zinc-200">
+                <table class="min-w-full divide-y divide-zinc-200">
+                    <thead class="bg-zinc-50/50">
+                        <tr>
+                            <th scope="col"
+                                class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                Item Name</th>
+                            <th scope="col"
+                                class="px-3 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                Price 1 <span class="font-normal text-zinc-400 normal-case ml-1">(اول)</span></th>
+                            {% if category != 'poultry' %}
+                            <th scope="col"
+                                class="px-3 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                Price 2 <span class="font-normal text-zinc-400 normal-case ml-1">(دوئم)</span></th>
                             {% endif %}
-                        </td>
-                        {% if category != 'poultry' %}
-                        <td class="px-6 py-4">
-                            {% if row.max_price %}
-                            <div class="flex items-baseline gap-1.5">
-                                <span class="text-xs font-bold text-slate-400">Rs</span>
-                                <span class="text-[15px] font-bold text-slate-600">{{ row.max_price | int }}</span>
-                            </div>
-                            {% else %}
-                            <span class="text-slate-300 font-medium">—</span>
+                            <th scope="col"
+                                class="px-3 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                Unit</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-100 bg-white">
+                        {% for row in rates %}
+                        <tr class="group hover:bg-zinc-50 transition-colors">
+                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-zinc-900">
+                                <a href="/trend/{{ category }}/{{ row.item_name }}" class="flex items-center gap-2">
+                                    {{ row.item_name }}
+                                    <i
+                                        class="ph ph-arrow-up-right text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                </a>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-zinc-700">
+                                {% if row.min_price %}
+                                Rs {{ row.min_price | int }}
+                                {% else %}
+                                <span class="text-zinc-300">—</span>
+                                {% endif %}
+                            </td>
+                            {% if category != 'poultry' %}
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-zinc-500">
+                                {% if row.max_price %}
+                                Rs {{ row.max_price | int }}
+                                {% else %}
+                                <span class="text-zinc-300">—</span>
+                                {% endif %}
+                            </td>
                             {% endif %}
-                        </td>
-                        {% endif %}
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-500">
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-zinc-500">
                                 {{ row.unit }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="py-24 px-6 text-center flex flex-col items-center justify-center">
-            <div class="w-20 h-20 mb-6 rounded-full bg-slate-100 flex items-center justify-center">
-                <i class="ph-duotone ph-file-dashed text-4xl text-slate-400"></i>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            <h3 class="text-lg font-bold text-slate-800 mb-2">No Market Data Found</h3>
-            <p class="text-slate-500 max-w-sm mx-auto mb-6 leading-relaxed">
-                We don't have any price records for {{ category }} on this date yet.
-            </p>
-            <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-600 inline-flex items-center gap-3">
-                <i class="ph-fill ph-terminal-window text-xl text-slate-400"></i>
-                <code class="font-mono bg-white px-2 py-1 rounded border border-slate-200">python main.py</code>
-                <span>to fetch latest</span>
+            {% else %}
+            <div class="py-16 text-center border border-zinc-200 rounded-lg bg-zinc-50/30">
+                <h3 class="text-sm font-medium text-zinc-900">No data found</h3>
+                <p class="mt-1 text-sm text-zinc-500">We don't have any price records for {{ category }} on this date.
+                </p>
             </div>
+            {% endif %}
         </div>
-        {% endif %}
-    </div>
 
-    <!-- Footer -->
-    <footer class="mt-12 mb-8 text-center text-sm font-medium text-slate-400">
-        <p>Built with <i class="ph-fill ph-heart text-rose-400"></i> using Python & FastAPI</p>
-    </footer>
+        <!-- Footer -->
+        <footer
+            class="mt-20 border-t border-zinc-200 pt-8 pb-12 flex justify-between items-center text-xs text-zinc-500">
+            <p>Lahore Market Monitor</p>
+            <p>Built by Muhammad Ali</p>
+        </footer>
 
-</main>
-
+    </main>
 </body>
+
 </html>

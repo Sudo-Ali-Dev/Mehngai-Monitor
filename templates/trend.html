@@ -3,236 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ item_name }} Trends - Lahore Market Rates</title>
+    <title>{{ item_name }} Trends</title>
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Plotly via CDN -->
     <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
-    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            900: '#064e3b',
-                        }
-                    },
-                    animation: {
-                        'fade-in-up': 'fadeInUp 0.5s ease-out',
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: { 'fade-in': 'fadeIn 0.3s ease-out' },
                     keyframes: {
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
                     }
                 }
             }
         }
     </script>
-    
-    <style>
-        /* Glassmorphism effects */
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen selection:bg-brand-500 selection:text-white">
+<body class="bg-white text-zinc-900 antialiased min-h-screen selection:bg-zinc-900 selection:text-white">
 
-<!-- Header (Glassmorphism) -->
-<header class="sticky top-0 z-50 glass border-b border-slate-200/60 shadow-sm">
+<!-- Header -->
+<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-200">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-            <div class="flex items-center gap-4">
-                <a href="/?category={{ category }}" 
-                   class="bg-white hover:bg-slate-50 text-slate-600 hover:text-brand-600 border border-slate-200 p-2 rounded-lg shadow-sm transition-all group">
-                    <i class="ph ph-arrow-left text-lg group-hover:-translate-x-0.5 transition-transform"></i>
-                </a>
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none flex items-center gap-2">
-                        <i class="ph-duotone ph-trend-up text-brand-500 text-2xl"></i>
-                        Price Trends
-                    </h1>
-                    <span class="text-xs font-medium text-brand-600 tracking-wider uppercase">{{ category }}</span>
-                </div>
+        <div class="flex items-center h-14 gap-4">
+            <a href="/?category={{ category }}" 
+               class="text-zinc-500 hover:text-zinc-900 transition-colors">
+                <i class="ph ph-arrow-left text-lg"></i>
+            </a>
+            <div>
+                <h1 class="text-base font-bold tracking-tight text-zinc-900 leading-none">
+                    Price Trends
+                </h1>
             </div>
-            <div class="hidden sm:flex items-center gap-2 bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200">
-                <i class="ph-fill ph-check-circle text-brand-600"></i>
-                Tracking historical data
+            <div class="ml-auto text-xs font-medium text-zinc-500 uppercase tracking-wider bg-zinc-100 px-2 py-1 rounded">
+                {{ category }}
             </div>
         </div>
     </div>
 </header>
 
-<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
     
-    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative">
-        <!-- Decoration element -->
-        <div class="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-bl-full -z-10 rotate-12 opacity-50"></div>
-        
-        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-            <div>
-                <h2 class="text-2xl font-bold text-slate-800 tracking-tight">{{ item_name }}</h2>
-                <p class="text-sm font-medium text-slate-500 mt-1">Historical price variations over time</p>
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">{{ item_name }}</h2>
+        <p class="text-sm font-medium text-zinc-500 mt-1">Historical rates over time</p>
+    </div>
+
+    <div>
+        {% if history %}
+            <div class="border border-zinc-200 rounded-lg p-2 sm:p-4">
+                <div id="chart" class="w-full h-[500px]"></div>
             </div>
-        </div>
+            
+            <script>
+                const historyData = [
+                    {% for row in history %}
+                        {
+                            "date": "{{ row.date }}",
+                            "min_price": {{ row.min_price if row.min_price else 'null' }},
+                            "max_price": {{ row.max_price if row.max_price else 'null' }}
+                        }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ];
 
-        <div class="p-6">
-            {% if history %}
-                <!-- Soft shadow and padding around chart -->
-                <div class="bg-slate-50/50 rounded-xl border border-slate-200/60 p-2 shadow-inner">
-                    <div id="chart" class="w-full h-[500px]"></div>
-                </div>
-                
-                <script>
-                    const historyData = [
-                        {% for row in history %}
-                            {
-                                "date": "{{ row.date }}",
-                                "min_price": {{ row.min_price if row.min_price else 'null' }},
-                                "max_price": {{ row.max_price if row.max_price else 'null' }}
-                            }{% if not loop.last %},{% endif %}
-                        {% endfor %}
-                    ];
+                const dates = historyData.map(d => d.date);
+                const price1 = historyData.map(d => d.min_price);
+                const price2 = historyData.map(d => d.max_price);
 
-                    const dates = historyData.map(d => d.date);
-                    const price1 = historyData.map(d => d.min_price);
-                    const price2 = historyData.map(d => d.max_price);
+                const trace1 = {
+                    x: dates,
+                    y: price1,
+                    name: 'Price 1',
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: {
+                        color: '#18181b', /* zinc-900 */
+                        width: 2,
+                        shape: 'spline' 
+                    },
+                    marker: {
+                        color: '#18181b',
+                        size: 6,
+                        symbol: 'circle'
+                    },
+                    hovertemplate: '<b>Rs %{y}</b><br>%{x}<extra></extra>'
+                };
 
-                    const trace1 = {
-                        x: dates,
-                        y: price1,
-                        name: 'Price 1 (اول)',
-                        type: 'scatter',
-                        mode: 'lines+markers',
-                        line: {
-                            color: '#10b981', /* brand-500 */
-                            width: 3,
-                            shape: 'spline' // smooth curves
-                        },
-                        marker: {
-                            color: '#059669', /* brand-600 */
-                            size: 8,
-                            line: {
-                                color: 'white',
-                                width: 2
-                            }
-                        },
-                        hovertemplate: '<b>Rs %{y}</b><br>%{x}<extra></extra>'
-                    };
+                const trace2 = {
+                    x: dates,
+                    y: price2,
+                    name: 'Price 2',
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: {
+                        color: '#a1a1aa', /* zinc-400 */
+                        width: 2,
+                        dash: 'dot',
+                        shape: 'spline'
+                    },
+                    marker: {
+                        color: '#a1a1aa',
+                        size: 6,
+                        symbol: 'circle-open'
+                    },
+                    hovertemplate: '<b>Rs %{y}</b><br>%{x}<extra></extra>'
+                };
 
-                    const trace2 = {
-                        x: dates,
-                        y: price2,
-                        name: 'Price 2 (دوئم)',
-                        type: 'scatter',
-                        mode: 'lines+markers',
-                        line: {
-                            color: '#f59e0b', /* amber-500 */
-                            width: 3,
-                            dash: 'dot',
-                            shape: 'spline'
-                        },
-                        marker: {
-                            color: '#d97706', /* amber-600 */
-                            size: 8,
-                            line: {
-                                color: 'white',
-                                width: 2
-                            }
-                        },
-                        hovertemplate: '<b>Rs %{y}</b><br>%{x}<extra></extra>'
-                    };
+                const layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    font: {
+                        family: 'Inter, sans-serif',
+                        color: '#52525b' /* zinc-500 */
+                    },
+                    xaxis: { 
+                        showgrid: false,
+                        zeroline: false,
+                        tickfont: { color: '#a1a1aa' },
+                        tickangle: -45
+                    },
+                    yaxis: { 
+                        title: { text: 'Price (Rs {{ "per " + unit if unit else "" }})', font: { size: 12, color: '#a1a1aa' } },
+                        gridcolor: '#f4f4f5', /* zinc-100 */
+                        gridwidth: 1,
+                        zeroline: false,
+                        tickfont: { color: '#71717a' }
+                    },
+                    hovermode: 'x unified',
+                    hoverlabel: {
+                        bgcolor: 'rgba(24,24,27,0.95)', /* dark hover label */
+                        font: { family: 'Inter, sans-serif', color: '#ffffff' },
+                        bordercolor: 'transparent'
+                    },
+                    margin: { t: 20, l: 50, r: 20, b: 60 },
+                    legend: { 
+                        orientation: 'h', 
+                        y: -0.2,
+                        x: 0.5,
+                        xanchor: 'center',
+                        font: { size: 12, color: '#52525b' }
+                    }
+                };
 
-                    const layout = {
-                        paper_bgcolor: 'rgba(0,0,0,0)', /* transparent background */
-                        plot_bgcolor: 'rgba(0,0,0,0)',
-                        font: {
-                            family: 'Inter, sans-serif',
-                            color: '#475569' /* slate-600 */
-                        },
-                        xaxis: { 
-                            title: { text: 'Date', font: { size: 13, color: '#64748b' } },
-                            showgrid: false,
-                            zeroline: false,
-                            tickfont: { color: '#94a3b8' }
-                        },
-                        yaxis: { 
-                            title: { text: 'Price (Rs {{ "per " + unit if unit else "" }})', font: { size: 13, color: '#64748b' } },
-                            gridcolor: '#e2e8f0', /* slate-200 */
-                            gridwidth: 1,
-                            zeroline: false,
-                            tickfont: { color: '#94a3b8' }
-                        },
-                        hovermode: 'x unified',
-                        hoverlabel: {
-                            bgcolor: 'rgba(255,255,255,0.95)',
-                            font: { family: 'Inter, sans-serif', color: '#1e293b' },
-                            bordercolor: '#cbd5e1'
-                        },
-                        margin: { t: 30, l: 60, r: 30, b: 60 },
-                        legend: { 
-                            orientation: 'h', 
-                            y: -0.2,
-                            x: 0.5,
-                            xanchor: 'center',
-                            font: { size: 13, color: '#475569' }
-                        }
-                    };
+                const config = { 
+                    responsive: true, 
+                    displayModeBar: false 
+                };
 
-                    const config = { 
-                        responsive: true, 
-                        displayModeBar: false 
-                    };
-
-                    {% if category == 'poultry' %}
-                    Plotly.newPlot('chart', [trace1], layout, config);
-                    {% else %}
-                    Plotly.newPlot('chart', [trace1, trace2], layout, config);
-                    {% endif %}
-                </script>
-            {% else %}
-                <div class="py-24 px-6 text-center flex flex-col items-center justify-center">
-                    <div class="w-20 h-20 mb-6 rounded-full bg-slate-100 flex items-center justify-center">
-                        <i class="ph-duotone ph-chart-polar text-4xl text-slate-400"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-2">No Historical Data</h3>
-                    <p class="text-slate-500 max-w-sm mx-auto mb-6 leading-relaxed">
-                        We don't have enough data points to plot a trend for {{ item_name }} yet.
-                    </p>
-                    <a href="/?category={{ category }}" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">
-                        Go back to rates
-                    </a>
-                </div>
-            {% endif %}
-        </div>
+                {% if category == 'poultry' %}
+                Plotly.newPlot('chart', [trace1], layout, config);
+                {% else %}
+                Plotly.newPlot('chart', [trace1, trace2], layout, config);
+                {% endif %}
+            </script>
+        {% else %}
+            <div class="py-16 text-center border border-zinc-200 rounded-lg bg-zinc-50/30">
+                <h3 class="text-sm font-medium text-zinc-900">No Historical Data</h3>
+                <p class="mt-1 text-sm text-zinc-500 mb-6">We don't have enough data points yet.</p>
+                <a href="/?category={{ category }}" class="text-sm font-medium text-zinc-900 bg-white border border-zinc-200 px-4 py-2 rounded-md hover:bg-zinc-50">
+                    Go back to rates
+                </a>
+            </div>
+        {% endif %}
     </div>
     
     <!-- Footer -->
-    <footer class="mt-12 mb-8 text-center text-sm font-medium text-slate-400">
-        <p>Built with <i class="ph-fill ph-heart text-rose-400"></i> using Python & FastAPI</p>
+    <footer class="mt-20 border-t border-zinc-200 pt-8 pb-12 flex justify-between items-center text-xs text-zinc-500">
+        <p>Lahore Market Monitor</p>
+        <p>Built by Muhammad Ali with Python & FastAPI</p>
     </footer>
 
 </main>
-
 </body>
 </html>
