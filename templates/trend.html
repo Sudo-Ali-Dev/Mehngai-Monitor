@@ -28,39 +28,37 @@
         }
     </script>
 </head>
-<body class="bg-white text-zinc-900 antialiased min-h-screen selection:bg-zinc-900 selection:text-white">
+<body class="bg-white text-gray-800 antialiased min-h-screen selection:bg-gray-800 selection:text-white flex flex-col">
 
-<!-- Header -->
-<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-200">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center h-14 gap-4">
-            <a href="/?category={{ category }}" 
-               class="text-zinc-500 hover:text-zinc-900 transition-colors">
-                <i class="ph ph-arrow-left text-lg"></i>
-            </a>
-            <div>
-                <h1 class="text-base font-bold tracking-tight text-zinc-900 leading-none">
-                    Price Trends
-                </h1>
-            </div>
-            <div class="ml-auto text-xs font-medium text-zinc-500 uppercase tracking-wider bg-zinc-100 px-2 py-1 rounded">
-                {{ category }}
-            </div>
-        </div>
+<!-- Preline Header -->
+<header class="sticky top-0 z-50 flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white/90 backdrop-blur-sm text-sm py-4 border-b border-gray-200">
+  <nav class="max-w-[85rem] w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between" aria-label="Global">
+    <div class="flex items-center gap-x-4">
+        <a href="/?category={{ category }}" class="text-gray-500 hover:text-gray-800 focus:outline-none focus:text-gray-800 transition-colors">
+            <i class="ph ph-arrow-left text-lg"></i>
+        </a>
+        <h1 class="flex-none text-xl font-semibold text-gray-800">Price Trends</h1>
     </div>
+    <div class="flex items-center">
+        <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-800 uppercase tracking-widest">{{ category }}</span>
+    </div>
+  </nav>
 </header>
 
-<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
+<main class="max-w-[85rem] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in flex-grow">
     
     <div class="mb-8">
-        <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">{{ item_name }}</h2>
-        <p class="text-sm font-medium text-zinc-500 mt-1">Historical rates over time</p>
+        <h2 class="text-3xl font-bold text-gray-800">{{ item_name }}</h2>
+        <p class="text-sm font-medium text-gray-500 mt-1">Historical rates over time</p>
     </div>
 
-    <div>
+    <div class="mb-16">
         {% if history %}
-            <div class="border border-zinc-200 rounded-lg p-2 sm:p-4">
+            <!-- Preline Card -->
+            <div class="flex flex-col bg-white border border-gray-200 shadow-sm rounded-xl">
+              <div class="p-4 md:p-5">
                 <div id="chart" class="w-full h-[500px]"></div>
+              </div>
             </div>
             
             <script>
@@ -85,12 +83,12 @@
                     type: 'scatter',
                     mode: 'lines+markers',
                     line: {
-                        color: '#18181b', /* zinc-900 */
+                        color: '#1f2937', /* gray-800 */
                         width: 2,
                         shape: 'spline' 
                     },
                     marker: {
-                        color: '#18181b',
+                        color: '#1f2937',
                         size: 6,
                         symbol: 'circle'
                     },
@@ -104,13 +102,13 @@
                     type: 'scatter',
                     mode: 'lines+markers',
                     line: {
-                        color: '#a1a1aa', /* zinc-400 */
+                        color: '#9ca3af', /* gray-400 */
                         width: 2,
                         dash: 'dot',
                         shape: 'spline'
                     },
                     marker: {
-                        color: '#a1a1aa',
+                        color: '#9ca3af',
                         size: 6,
                         symbol: 'circle-open'
                     },
@@ -122,24 +120,24 @@
                     plot_bgcolor: 'rgba(0,0,0,0)',
                     font: {
                         family: 'Inter, sans-serif',
-                        color: '#52525b' /* zinc-500 */
+                        color: '#6b7280' /* gray-500 */
                     },
                     xaxis: { 
                         showgrid: false,
                         zeroline: false,
-                        tickfont: { color: '#a1a1aa' },
+                        tickfont: { color: '#9ca3af' },
                         tickangle: -45
                     },
                     yaxis: { 
-                        title: { text: 'Price (Rs {{ "per " + unit if unit else "" }})', font: { size: 12, color: '#a1a1aa' } },
-                        gridcolor: '#f4f4f5', /* zinc-100 */
+                        title: { text: 'Price (Rs {{ "per " + unit if unit else "" }})', font: { size: 12, color: '#9ca3af' } },
+                        gridcolor: '#f3f4f6', /* gray-100 */
                         gridwidth: 1,
                         zeroline: false,
-                        tickfont: { color: '#71717a' }
+                        tickfont: { color: '#4b5563' }
                     },
                     hovermode: 'x unified',
                     hoverlabel: {
-                        bgcolor: 'rgba(24,24,27,0.95)', /* dark hover label */
+                        bgcolor: 'rgba(31,41,55,0.95)', /* gray-800 dark hover label */
                         font: { family: 'Inter, sans-serif', color: '#ffffff' },
                         bordercolor: 'transparent'
                     },
@@ -149,7 +147,7 @@
                         y: -0.2,
                         x: 0.5,
                         xanchor: 'center',
-                        font: { size: 12, color: '#52525b' }
+                        font: { size: 12, color: '#6b7280' }
                     }
                 };
 
@@ -165,22 +163,37 @@
                 {% endif %}
             </script>
         {% else %}
-            <div class="py-16 text-center border border-zinc-200 rounded-lg bg-zinc-50/30">
-                <h3 class="text-sm font-medium text-zinc-900">No Historical Data</h3>
-                <p class="mt-1 text-sm text-zinc-500 mb-6">We don't have enough data points yet.</p>
-                <a href="/?category={{ category }}" class="text-sm font-medium text-zinc-900 bg-white border border-zinc-200 px-4 py-2 rounded-md hover:bg-zinc-50">
-                    Go back to rates
+            <!-- Preline Empty State -->
+            <div class="min-h-[300px] flex flex-col bg-white border border-gray-200 shadow-sm rounded-xl">
+              <div class="flex flex-col justify-center items-center h-full flex-grow p-4 sm:p-6 text-center">
+                <svg class="size-16 text-gray-300" width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11.5 28.75H23M11.5 17.25H34.5M11.5 23H34.5M34.5 34.5H11.5C9.59502 34.5 8.64253 34.5 7.91572 34.1294C7.27638 33.8034 6.69665 33.2236 6.37057 32.5843C6 31.8575 6 30.905 6 29V11.5C6 9.59502 6 8.64253 6.37057 7.91572C6.69665 7.27638 7.27638 6.69665 7.91572 6.37057C8.64253 6 9.59502 6 11.5 6H34.5C36.405 6 37.3575 6 38.0843 6.37057C38.7236 6.69665 39.3034 7.27638 39.6294 7.91572C40 8.64253 40 9.59502 40 11.5V29C40 30.905 40 31.8575 39.6294 32.5843C39.3034 33.2236 38.7236 33.8034 38.0843 34.1294C37.3575 34.5 36.405 34.5 34.5 34.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h3 class="mt-4 text-xs tracking-wider uppercase text-gray-500 font-semibold text-center">
+                  No Historical Data
+                </h3>
+                <p class="mt-2 text-sm text-gray-500 mb-6">
+                  We don't have enough data points yet.
+                </p>
+                <a href="/?category={{ category }}" class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors">
+                  Go back to rates
                 </a>
+              </div>
             </div>
         {% endif %}
     </div>
     
-    <!-- Footer -->
-    <footer class="mt-20 border-t border-zinc-200 pt-8 pb-12 flex justify-between items-center text-xs text-zinc-500">
+    <!-- Preline Footer -->
+    <footer class="mt-auto w-full max-w-[85rem] py-10 px-4 sm:px-6 lg:px-8 mx-auto border-t border-gray-200">
+      <div class="flex justify-between items-center text-sm font-medium text-gray-500">
         <p>Lahore Market Monitor</p>
         <p>Built by Muhammad Ali with Python & FastAPI</p>
+      </div>
     </footer>
 
 </main>
+
+<!-- Preline JS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/preline/dist/preline.min.js"></script>
 </body>
 </html>

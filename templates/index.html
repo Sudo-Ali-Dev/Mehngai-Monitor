@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lahore Market Rates</title>
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
     <script>
         tailwind.config = {
             theme: {
@@ -28,176 +23,156 @@
         }
     </script>
     <style>
-        /* Minimal custom scrollbar for webkit */
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #e4e4e7;
-            border-radius: 2px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a1a1aa;
-        }
-
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
+<body class="bg-white text-gray-800 antialiased min-h-screen selection:bg-gray-800 selection:text-white pb-10">
 
-<body class="bg-white text-zinc-900 antialiased min-h-screen selection:bg-zinc-900 selection:text-white">
+<!-- Preline Header -->
+<header class="sticky top-0 z-50 flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white/90 backdrop-blur-sm text-sm py-4 border-b border-gray-200">
+  <nav class="max-w-[85rem] w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between" aria-label="Global">
+    <div class="flex items-center gap-x-2">
+        <i class="ph-fill ph-storefront text-xl text-gray-800"></i>
+        <a class="flex-none text-xl font-semibold text-gray-800" href="/">Lahore Market</a>
+    </div>
+    {% if latest_date %}
+    <div class="flex items-center gap-x-2 font-medium text-gray-500">
+        <i class="ph ph-calendar-blank"></i>
+        <span>{{ latest_date }}</span>
+    </div>
+    {% endif %}
+  </nav>
+</header>
 
-    <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-200">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-14">
-                <div class="flex items-center gap-2">
-                    <i class="ph-fill ph-storefront text-xl text-zinc-900"></i>
-                    <h1 class="text-lg font-bold tracking-tight text-zinc-900 leading-none">Lahore Market</h1>
-                </div>
-                {% if latest_date %}
-                <div class="text-sm font-medium text-zinc-500">
-                    <i class="ph ph-calendar-blank mr-1"></i>{{ latest_date }}
-                </div>
-                {% endif %}
-            </div>
+<main class="max-w-[85rem] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
+    
+    <!-- Preline Tabs (Navigation) -->
+    <div class="border-b border-gray-200 mb-6">
+      <nav class="-mb-0.5 flex space-x-6" aria-label="Tabs" role="tablist">
+        {% for cat in categories %}
+        <a href="/?category={{ cat }}"
+           class="py-4 px-1 inline-flex items-center gap-2 border-b-2 text-sm font-medium whitespace-nowrap focus:outline-none focus:text-gray-800
+           {% if cat == category %}
+               border-gray-800 text-gray-800
+           {% else %}
+               border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300
+           {% endif %}">
+            <span class="capitalize">{{ cat }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+    </div>
+
+    <!-- Date Selector -->
+    {% if dates %}
+    <div class="mb-8">
+        <div class="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
+            {% for d in dates %}
+            <a href="/date/{{ category }}/{{ d }}"
+               class="shrink-0 py-1.5 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border focus:outline-none transition-colors
+               {% if d == latest_date %}
+                   border-transparent bg-gray-800 text-white hover:bg-gray-900 focus:bg-gray-900
+               {% else %}
+                   border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:bg-gray-50
+               {% endif %}">
+                {{ d }}
+            </a>
+            {% endfor %}
         </div>
-    </header>
+    </div>
+    {% endif %}
 
-    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
+    <!-- Preline Table -->
+    <div class="flex flex-col mb-16">
+      <div class="-m-1.5 overflow-x-auto">
+        <div class="p-1.5 min-w-full inline-block align-middle">
+          
+          <div class="flex justify-between items-center mb-4 px-1">
+              <h2 class="text-lg font-semibold text-gray-800 capitalize">{{ category }} Prices</h2>
+              {% if rates %}
+              <span class="inline-flex items-center gap-x-1.5 py-1 px-3 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ rates|length }} items</span>
+              {% endif %}
+          </div>
 
-        <!-- Controls Section -->
-        <div class="mb-10">
-
-            <!-- Category Tabs -->
-            <div class="border-b border-zinc-200 mb-6">
-                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                    {% for cat in categories %}
-                    <a href="/?category={{ cat }}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                   {% if cat == category %}
-                       border-zinc-900 text-zinc-900
-                   {% else %}
-                       border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300
-                   {% endif %}">
-                        <span class="capitalize">{{ cat }}</span>
-                    </a>
-                    {% endfor %}
-                </nav>
+          {% if rates %}
+          <div class="border rounded-lg shadow-sm overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Item Name</th>
+                  <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Price 1 <span class="font-normal text-gray-400 normal-case ml-1">(اول)</span></th>
+                  {% if category != 'poultry' %}
+                  <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Price 2 <span class="font-normal text-gray-400 normal-case ml-1">(دوئم)</span></th>
+                  {% endif %}
+                  <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Unit</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 bg-white">
+                {% for row in rates %}
+                <tr class="hover:bg-gray-50 transition-colors group">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                      <a href="/trend/{{ category }}/{{ row.item_name }}" class="flex items-center gap-x-2">
+                          {{ row.item_name }}
+                          <i class="ph ph-arrow-up-right text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                      </a>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {% if row.min_price %}
+                          Rs {{ row.min_price | int }}
+                      {% else %}
+                          <span class="text-gray-300">—</span>
+                      {% endif %}
+                  </td>
+                  {% if category != 'poultry' %}
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {% if row.max_price %}
+                          Rs {{ row.max_price | int }}
+                      {% else %}
+                          <span class="text-gray-300">—</span>
+                      {% endif %}
+                  </td>
+                  {% endif %}
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ row.unit }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <!-- Preline Empty State -->
+          <div class="min-h-[300px] flex flex-col bg-white border border-gray-200 shadow-sm rounded-xl">
+            <div class="flex flex-col justify-center items-center h-full flex-grow p-4 sm:p-6 text-center">
+              <svg class="size-16 text-gray-300" width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.5 28.75H23M11.5 17.25H34.5M11.5 23H34.5M34.5 34.5H11.5C9.59502 34.5 8.64253 34.5 7.91572 34.1294C7.27638 33.8034 6.69665 33.2236 6.37057 32.5843C6 31.8575 6 30.905 6 29V11.5C6 9.59502 6 8.64253 6.37057 7.91572C6.69665 7.27638 7.27638 6.69665 7.91572 6.37057C8.64253 6 9.59502 6 11.5 6H34.5C36.405 6 37.3575 6 38.0843 6.37057C38.7236 6.69665 39.3034 7.27638 39.6294 7.91572C40 8.64253 40 9.59502 40 11.5V29C40 30.905 40 31.8575 39.6294 32.5843C39.3034 33.2236 38.7236 33.8034 38.0843 34.1294C37.3575 34.5 36.405 34.5 34.5 34.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <h3 class="mt-4 text-xs tracking-wider uppercase text-gray-500 font-semibold text-center">
+                No market data found
+              </h3>
+              <p class="mt-2 text-sm text-gray-500">
+                We don't have price records for {{ category }} on this date.
+              </p>
             </div>
+          </div>
+          {% endif %}
 
-            <!-- Date Selector -->
-            {% if dates %}
-            <div>
-                <div class="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
-                    {% for d in dates %}
-                    <a href="/date/{{ category }}/{{ d }}" class="shrink-0 px-3 py-1.5 rounded-md text-sm transition-colors border border-transparent
-                   {% if d == latest_date %}
-                       bg-zinc-900 text-white font-medium
-                   {% else %}
-                       bg-zinc-50 text-zinc-600 hover:bg-zinc-100 border-zinc-200/50 hover:border-zinc-300 hover:text-zinc-900
-                   {% endif %}">
-                        {{ d }}
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
         </div>
+      </div>
+    </div>
 
-        <!-- Data Section -->
-        <div>
-            <div class="flex justify-between items-end mb-4">
-                <h2 class="text-base font-semibold text-zinc-900 capitalize">{{ category }} Prices</h2>
-                {% if rates %}
-                <span class="text-xs text-zinc-500 font-medium">{{ rates|length }} items</span>
-                {% endif %}
-            </div>
+    <!-- Preline Footer -->
+    <footer class="mt-auto w-full max-w-[85rem] py-10 px-4 sm:px-6 lg:px-8 mx-auto border-t border-gray-200">
+      <div class="flex justify-between items-center text-sm font-medium text-gray-500">
+        <p>Lahore Market Monitor</p>
+        <p>Built by Muhammad Ali with Python & FastAPI</p>
+      </div>
+    </footer>
 
-            {% if rates %}
-            <div class="overflow-x-auto rounded-lg border border-zinc-200">
-                <table class="min-w-full divide-y divide-zinc-200">
-                    <thead class="bg-zinc-50/50">
-                        <tr>
-                            <th scope="col"
-                                class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                                Item Name</th>
-                            <th scope="col"
-                                class="px-3 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                                Price 1 <span class="font-normal text-zinc-400 normal-case ml-1">(اول)</span></th>
-                            {% if category != 'poultry' %}
-                            <th scope="col"
-                                class="px-3 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                                Price 2 <span class="font-normal text-zinc-400 normal-case ml-1">(دوئم)</span></th>
-                            {% endif %}
-                            <th scope="col"
-                                class="px-3 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                                Unit</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-100 bg-white">
-                        {% for row in rates %}
-                        <tr class="group hover:bg-zinc-50 transition-colors">
-                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-zinc-900">
-                                <a href="/trend/{{ category }}/{{ row.item_name }}" class="flex items-center gap-2">
-                                    {{ row.item_name }}
-                                    <i
-                                        class="ph ph-arrow-up-right text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                                </a>
-                            </td>
-                            <td class="whitespace-nowrap px-3 py-4 text-sm text-zinc-700">
-                                {% if row.min_price %}
-                                Rs {{ row.min_price | int }}
-                                {% else %}
-                                <span class="text-zinc-300">—</span>
-                                {% endif %}
-                            </td>
-                            {% if category != 'poultry' %}
-                            <td class="whitespace-nowrap px-3 py-4 text-sm text-zinc-500">
-                                {% if row.max_price %}
-                                Rs {{ row.max_price | int }}
-                                {% else %}
-                                <span class="text-zinc-300">—</span>
-                                {% endif %}
-                            </td>
-                            {% endif %}
-                            <td class="whitespace-nowrap px-3 py-4 text-sm text-zinc-500">
-                                {{ row.unit }}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="py-16 text-center border border-zinc-200 rounded-lg bg-zinc-50/30">
-                <h3 class="text-sm font-medium text-zinc-900">No data found</h3>
-                <p class="mt-1 text-sm text-zinc-500">We don't have any price records for {{ category }} on this date.
-                </p>
-            </div>
-            {% endif %}
-        </div>
+</main>
 
-        <!-- Footer -->
-        <footer
-            class="mt-20 border-t border-zinc-200 pt-8 pb-12 flex justify-between items-center text-xs text-zinc-500">
-            <p>Lahore Market Monitor</p>
-            <p>Built by Muhammad Ali</p>
-        </footer>
-
-    </main>
+<!-- Preline JS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/preline/dist/preline.min.js"></script>
 </body>
-
 </html>
