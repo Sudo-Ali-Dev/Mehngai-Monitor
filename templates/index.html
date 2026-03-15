@@ -4,235 +4,254 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lahore Market Rates</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        }
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f0f2f5;
-            color: #1a1a1a;
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
         }
 
-        header {
-            background: #1a6e3c;
-            color: white;
-            padding: 16px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        /* Glassmorphism effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-
-        header h1 { font-size: 1.4rem; font-weight: 600; }
-        header span { font-size: 0.9rem; opacity: 0.8; }
-
-        .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
-
-        /* Category tabs */
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
+        
+        .glass-dark {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        .tab {
-            padding: 8px 24px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            background: white;
-            color: #555;
-            border: 1px solid #ddd;
-            text-transform: capitalize;
+        
+        /* Smooth transitions */
+        .transition-all-200 {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        .tab.active {
-            background: #1a6e3c;
-            color: white;
-            border-color: #1a6e3c;
-        }
-
-        /* Date pills */
-        .dates {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .date-pill {
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.82rem;
-            text-decoration: none;
-            background: white;
-            color: #555;
-            border: 1px solid #ddd;
-        }
-
-        .date-pill.active {
-            background: #e8f5ee;
-            color: #1a6e3c;
-            border-color: #1a6e3c;
-            font-weight: 600;
-        }
-
-        /* Table */
-        .card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-
-        .card-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-header h2 {
-            font-size: 1.05rem;
-            font-weight: 600;
-            text-transform: capitalize;
-        }
-
-        .badge {
-            background: #e8f5ee;
-            color: #1a6e3c;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead th {
-            background: #f8f9fa;
-            padding: 10px 16px;
-            text-align: left;
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: #888;
-            border-bottom: 1px solid #eee;
-        }
-
-        tbody td {
-            padding: 11px 16px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 0.93rem;
-        }
-
-        tbody tr:last-child td { border-bottom: none; }
-        tbody tr:hover { background: #fafafa; }
-
-        .price { font-weight: 600; color: #1a6e3c; }
-        .price-null { color: #bbb; }
-        .unit { font-size: 0.78rem; color: #aaa; margin-left: 2px; }
-
-        .empty {
-            text-align: center;
-            padding: 60px 20px;
-            color: #aaa;
-        }
-
-        .empty p { margin-top: 8px; font-size: 0.9rem; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen selection:bg-brand-500 selection:text-white">
 
-<header>
-    <h1>🥦 Lahore Market Rates</h1>
-    {% if latest_date %}
-    <span>{{ latest_date }}</span>
-    {% endif %}
-</header>
-
-<div class="container">
-
-    <!-- Category tabs -->
-    <div class="tabs">
-        {% for cat in categories %}
-        <a href="/?category={{ cat }}"
-           class="tab {% if cat == category %}active{% endif %}">
-            {% if cat == 'fruits' %}🍎{% elif cat == 'vegetables' %}🥕{% else %}🍗{% endif %}
-            {{ cat }}
-        </a>
-        {% endfor %}
-    </div>
-
-    <!-- Date selector -->
-    {% if dates %}
-    <div class="dates">
-        {% for d in dates %}
-        <a href="/date/{{ category }}/{{ d }}"
-           class="date-pill {% if d == latest_date %}active{% endif %}">
-            {{ d }}
-        </a>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Rates table -->
-    <div class="card">
-        <div class="card-header">
-            <h2>{{ category }} prices</h2>
-            {% if rates %}
-            <span class="badge">{{ rates|length }} items</span>
+<!-- Header (Glassmorphism) -->
+<header class="sticky top-0 z-50 glass border-b border-slate-200/60 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-brand-500 to-brand-700 text-white p-2 rounded-xl shadow-lg shadow-brand-500/30">
+                    <i class="ph ph-shopping-cart text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none">
+                        Lahore Market
+                    </h1>
+                    <span class="text-xs font-medium text-brand-600 tracking-wider uppercase">Daily Rates Monitor</span>
+                </div>
+            </div>
+            {% if latest_date %}
+            <div class="hidden sm:flex items-center gap-2 bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200">
+                <i class="ph ph-calendar-blank text-brand-600"></i>
+                {{ latest_date }}
+            </div>
             {% endif %}
         </div>
+    </div>
+</header>
 
-        {% if rates %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Price 1 (اول)</th>
-                    <th>Price 2 (دوئم)</th>
-                    <th>Unit</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in rates %}
-                <tr>
-                    <td>
-                        <a href="/trend/{{ category }}/{{ row.item_name }}" style="color: #1a6e3c; text-decoration: none; font-weight: 500;">
-                            {{ row.item_name }}
-                        </a>
-                    </td>
-                    <td>
-                        {% if row.min_price %}
-                        <span class="price">Rs {{ row.min_price | int }}</span>
-                        {% else %}
-                        <span class="price-null">—</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if row.max_price %}
-                        <span class="price">Rs {{ row.max_price | int }}</span>
-                        {% else %}
-                        <span class="price-null">—</span>
-                        {% endif %}
-                    </td>
-                    <td><span class="unit">{{ row.unit }}</span></td>
-                </tr>
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
+    
+    <!-- Controls Section -->
+    <div class="mb-8 space-y-6">
+        
+        <!-- Category Segmented Control -->
+        <div>
+            <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 ml-1">Commodity Type</h3>
+            <div class="inline-flex bg-slate-200/60 rounded-xl p-1.5 gap-1.5 border border-slate-200/80 shadow-inner">
+                {% for cat in categories %}
+                <a href="/?category={{ cat }}"
+                   class="relative px-5 py-2.5 rounded-lg text-sm font-semibold transition-all-200 flex items-center gap-2
+                   {% if cat == category %}
+                       bg-white text-brand-700 shadow-md ring-1 ring-slate-900/5
+                   {% else %}
+                       text-slate-600 hover:text-slate-900 hover:bg-slate-200/50
+                   {% endif %}">
+                    
+                    {% if cat == 'fruits' %}
+                        <i class="ph-fill ph-apple-logo {% if cat == category %}text-brand-500{% else %}text-slate-400{% endif %} text-lg"></i>
+                    {% elif cat == 'vegetables' %}
+                        <i class="ph-fill ph-carrot {% if cat == category %}text-brand-500{% else %}text-slate-400{% endif %} text-lg"></i>
+                    {% else %}
+                        <i class="ph-fill ph-egg {% if cat == category %}text-brand-500{% else %}text-slate-400{% endif %} text-lg"></i>
+                    {% endif %}
+                    <span class="capitalize">{{ cat }}</span>
+                </a>
                 {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="empty">
-            <div style="font-size:2.5rem">📭</div>
-            <p>No data yet for {{ category }}.<br>Run <code>python main.py</code> to fetch latest rates.</p>
+            </div>
+        </div>
+
+        <!-- Date Selector -->
+        {% if dates %}
+        <div>
+            <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 ml-1">Available Dates</h3>
+            <div class="flex flex-wrap gap-2.5">
+                {% for d in dates %}
+                <a href="/date/{{ category }}/{{ d }}"
+                   class="px-4 py-1.5 rounded-full text-sm font-medium transition-all-200 border
+                   {% if d == latest_date %}
+                       bg-brand-50 border-brand-200 text-brand-700 shadow-sm ring-1 ring-brand-500/20
+                   {% else %}
+                       bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900
+                   {% endif %}">
+                    {{ d }}
+                </a>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
     </div>
 
-</div>
+    <!-- Data Card -->
+    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+        
+        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 capitalize">
+                <i class="ph-duotone ph-list-numbers text-brand-500 text-xl"></i>
+                {{ category }} Prices
+            </h2>
+            {% if rates %}
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold border border-slate-200">
+                <i class="ph-fill ph-tag"></i>
+                {{ rates|length }} items
+            </span>
+            {% endif %}
+        </div>
+
+        {% if rates %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/80 border-b border-slate-200">
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Item Name</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-1/4">Price 1 <span class="text-slate-400 font-medium ml-1">(اول)</span></th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-1/4">Price 2 <span class="text-slate-400 font-medium ml-1">(دوئم)</span></th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-32">Unit</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for row in rates %}
+                    <tr class="group hover:bg-brand-50/30 transition-colors duration-150">
+                        <td class="px-6 py-4">
+                            <a href="/trend/{{ category }}/{{ row.item_name }}" 
+                               class="inline-flex items-center gap-2 font-semibold text-slate-800 group-hover:text-brand-600 transition-colors">
+                                {{ row.item_name }}
+                                <i class="ph ph-chart-line-up opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all text-brand-500"></i>
+                            </a>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if row.min_price %}
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-xs font-bold text-slate-400">Rs</span>
+                                <span class="text-[15px] font-bold text-slate-800">{{ row.min_price | int }}</span>
+                            </div>
+                            {% else %}
+                            <span class="text-slate-300 font-medium">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if row.max_price %}
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-xs font-bold text-slate-400">Rs</span>
+                                <span class="text-[15px] font-bold text-slate-600">{{ row.max_price | int }}</span>
+                            </div>
+                            {% else %}
+                            <span class="text-slate-300 font-medium">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-500">
+                                {{ row.unit }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="py-24 px-6 text-center flex flex-col items-center justify-center">
+            <div class="w-20 h-20 mb-6 rounded-full bg-slate-100 flex items-center justify-center">
+                <i class="ph-duotone ph-file-dashed text-4xl text-slate-400"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">No Market Data Found</h3>
+            <p class="text-slate-500 max-w-sm mx-auto mb-6 leading-relaxed">
+                We don't have any price records for {{ category }} on this date yet.
+            </p>
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-600 inline-flex items-center gap-3">
+                <i class="ph-fill ph-terminal-window text-xl text-slate-400"></i>
+                <code class="font-mono bg-white px-2 py-1 rounded border border-slate-200">python main.py</code>
+                <span>to fetch latest</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 mb-8 text-center text-sm font-medium text-slate-400">
+        <p>Built with <i class="ph-fill ph-heart text-rose-400"></i> using Python & FastAPI</p>
+    </footer>
+
+</main>
+
 </body>
 </html>
