@@ -196,6 +196,7 @@ if __name__ == "__main__":
     run_ocr()
 
     # 4. Start web server
-    print("\n[STEP 3] Starting web app at http://localhost:8000")
+    host = os.environ.get("HOST", "127.0.0.1")
+    print(f"\n[STEP 3] Starting web app at http://{host}:8000")
     print("=" * 50)
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host=host, port=8000)
