@@ -4,9 +4,6 @@
 # Downloaded images (can be large)
 images/
 
-# Database (contains scraped data, regeneratable)
-data/
-
 # Python cache
 __pycache__/
 *.pyc
