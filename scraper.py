@@ -28,8 +28,42 @@ HEADERS = {
     )
 }
 
+# ── Proxy Configuration ────────────────────────────────────────────────────────
+# Add your working proxies here. Format: "http://ip:port" or "https://ip:port"
+# Example: ["http://proxy1.com:8080", "http://proxy2.com:8080"]
+PROXIES_LIST = [
+    "http://43.245.131.90:8080",
+    "http://103.115.198.177:8082",
+    "http://103.205.178.226:8080",
+    "http://103.66.149.194:8080",
+    "http://202.165.232.238:8080",
+    "http://103.197.47.42:8080",
+    "http://154.208.58.89:8080",
+]
+
+PROXY_INDEX = 0
+
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+
+def get_next_proxy() -> dict | None:
+    """
+    Get the next proxy from the rotation list.
+    Returns a dict for requests.get(proxies=dict) or None if no proxies configured.
+    """
+    global PROXY_INDEX
+    
+    if not PROXIES_LIST:
+        return None
+    
+    proxy = PROXIES_LIST[PROXY_INDEX % len(PROXIES_LIST)]
+    PROXY_INDEX += 1
+    
+    return {
+        "http": proxy,
+        "https": proxy,
+    }
+
 
 def md5_of_bytes(data: bytes) -> str:
     return hashlib.md5(data).hexdigest()
@@ -44,13 +78,29 @@ def image_save_path(date: str, category: str) -> str:
 # ── Core scraping logic ────────────────────────────────────────────────────────
 
 def fetch_page(url: str) -> BeautifulSoup | None:
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=15)
-        resp.raise_for_status()
-        return BeautifulSoup(resp.text, "html.parser")
-    except requests.RequestException as e:
-        print(f"[SCRAPER] Failed to fetch {url}: {e}")
-        return None
+    """
+    Fetch a page with proxy rotation and fallback to no proxy.
+    """
+    proxies_to_try = [None]  # Start with no proxy
+    
+    if PROXIES_LIST:
+        # Try proxies first before falling back to no proxy
+        proxies_to_try = [get_next_proxy() for _ in range(min(3, len(PROXIES_LIST)))] + [None]
+    
+    for proxies in proxies_to_try:
+        try:
+            proxy_info = f" (via {proxies['https']})" if proxies else ""
+            resp = requests.get(url, headers=HEADERS, timeout=15, proxies=proxies)
+            resp.raise_for_status()
+            print(f"[SCRAPER] Fetched {url}{proxy_info}")
+            return BeautifulSoup(resp.text, "html.parser")
+        except requests.RequestException as e:
+            proxy_info = f" (via {proxies['https']})" if proxies else ""
+            print(f"[SCRAPER] Failed to fetch {url}{proxy_info}: {e}")
+            continue
+    
+    print(f"[SCRAPER] All attempts failed for {url}")
+    return None
 
 
 def parse_table(soup: BeautifulSoup, category: str) -> list[dict]:
@@ -89,14 +139,28 @@ def parse_table(soup: BeautifulSoup, category: str) -> list[dict]:
 
 def download_image(url: str, date: str, category: str) -> str | None:
     """
-    Download the image, check for MD5 dupe, save to disk.
+    Download the image with proxy rotation, check for MD5 dupe, save to disk.
     Returns the local file path if successful, None otherwise.
     """
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=30)
-        resp.raise_for_status()
-    except requests.RequestException as e:
-        print(f"[SCRAPER] Download failed for {url}: {e}")
+    proxies_to_try = [None]  # Start with no proxy
+    
+    if PROXIES_LIST:
+        # Try proxies first before falling back to no proxy
+        proxies_to_try = [get_next_proxy() for _ in range(min(3, len(PROXIES_LIST)))] + [None]
+    
+    for proxies in proxies_to_try:
+        try:
+            proxy_info = f" (via {proxies['https']})" if proxies else ""
+            resp = requests.get(url, headers=HEADERS, timeout=30, proxies=proxies)
+            resp.raise_for_status()
+            break  # Success, stop trying proxies
+        except requests.RequestException as e:
+            proxy_info = f" (via {proxies['https']})" if proxies else ""
+            print(f"[SCRAPER] Download failed for {url}{proxy_info}: {e}")
+            continue
+    else:
+        # All proxy attempts failed
+        print(f"[SCRAPER] All proxy attempts exhausted for {url}")
         return None
 
     image_data = resp.content
