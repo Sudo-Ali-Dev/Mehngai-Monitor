@@ -11,9 +11,40 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from database import get_conn
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+import pytz
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+
+# ── Scheduler for Daily Scraping ───────────────────────────────────────────────
+
+def scheduled_scrape_job():
+    """Background job to run scraper and OCR daily."""
+    print("\n[SCHEDULED] Running daily scraper job...")
+    try:
+        new_images = run_scraper()
+        run_ocr()
+        print("[SCHEDULED] Daily job completed successfully.")
+    except Exception as e:
+        print(f"[SCHEDULED] Error during job: {e}")
+
+
+# Initialize and start the scheduler
+scheduler = BackgroundScheduler()
+pakistan_tz = pytz.timezone("Asia/Karachi")
+
+# Schedule to run every day at 12:00 PM Pakistan time
+scheduler.add_job(
+    scheduled_scrape_job,
+    trigger=CronTrigger(hour=12, minute=0, timezone=pakistan_tz),
+    id="daily_scrape",
+    name="Daily scraper at 12 PM Pakistan time",
+    replace_existing=True,
+)
+scheduler.start()
 
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
@@ -187,7 +218,7 @@ if __name__ == "__main__":
     # 1. Init DB
     init_db()
 
-    # 2. Scrape new images
+    # 2. Scrape new images on startup
     print("\n[STEP 1] Checking for new images...")
     new_images = run_scraper()
 
@@ -195,8 +226,15 @@ if __name__ == "__main__":
     print("\n[STEP 2] Processing new images with Gemini...")
     run_ocr()
 
-    # 4. Start web server
-    host = os.environ.get("HOST", "127.0.0.1")
-    print(f"\n[STEP 3] Starting web app at http://{host}:8000")
+    # 4. Start web server with scheduler running in background
+    host = os.environ.get("HOST", "0.0.0.0")
+    print(f"\n[STEP 3] Daily scraper scheduled for 12:00 PM Pakistan time (Asia/Karachi)")
+    print(f"[STEP 4] Starting web app at http://{host}:8000")
     print("=" * 50)
-    uvicorn.run(app, host=host, port=8000)
+    
+    try:
+        uvicorn.run(app, host=host, port=8000)
+    finally:
+        # Shutdown scheduler on exit
+        if scheduler.running:
+            scheduler.shutdown()

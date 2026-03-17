@@ -79,7 +79,8 @@ def image_save_path(date: str, category: str) -> str:
 
 def fetch_page(url: str) -> BeautifulSoup | None:
     """
-    Fetch a page with proxy rotation and fallback to no proxy.
+    Fetch a page with proxy rotation, retry logic, and fallback to no proxy.
+    Retries each proxy up to 2 times before moving to the next one.
     """
     proxies_to_try = [None]  # Start with no proxy
     
@@ -87,17 +88,26 @@ def fetch_page(url: str) -> BeautifulSoup | None:
         # Try proxies first before falling back to no proxy
         proxies_to_try = [get_next_proxy() for _ in range(min(3, len(PROXIES_LIST)))] + [None]
     
+    max_retries = 2  # Retry each proxy up to 2 times
+    
     for proxies in proxies_to_try:
-        try:
-            proxy_info = f" (via {proxies['https']})" if proxies else ""
-            resp = requests.get(url, headers=HEADERS, timeout=15, proxies=proxies)
-            resp.raise_for_status()
-            print(f"[SCRAPER] Fetched {url}{proxy_info}")
-            return BeautifulSoup(resp.text, "html.parser")
-        except requests.RequestException as e:
-            proxy_info = f" (via {proxies['https']})" if proxies else ""
-            print(f"[SCRAPER] Failed to fetch {url}{proxy_info}: {e}")
-            continue
+        for attempt in range(max_retries + 1):
+            try:
+                proxy_info = f" (via {proxies['https']})" if proxies else ""
+                attempt_info = f" (attempt {attempt + 1}/{max_retries + 1})" if attempt > 0 else ""
+                resp = requests.get(url, headers=HEADERS, timeout=30, proxies=proxies)
+                resp.raise_for_status()
+                print(f"[SCRAPER] Fetched {url}{proxy_info}")
+                return BeautifulSoup(resp.text, "html.parser")
+            except requests.RequestException as e:
+                proxy_info = f" (via {proxies['https']})" if proxies else ""
+                attempt_info = f" (attempt {attempt + 1}/{max_retries + 1})" if attempt < max_retries else ""
+                print(f"[SCRAPER] Failed to fetch {url}{proxy_info}{attempt_info}: {e}")
+                # If we've exhausted retries for this proxy, try the next one
+                if attempt == max_retries:
+                    continue
+                # Otherwise, retry the same proxy
+                time.sleep(1)
     
     print(f"[SCRAPER] All attempts failed for {url}")
     return None
