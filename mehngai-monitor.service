@@ -1,0 +1,29 @@
+[Unit]
+Description=Mehngai Monitor - Pakistan Market Rates Tracker
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=mehngai
+WorkingDirectory=/home/mehngai/mehngai-monitor
+ExecStart=/home/mehngai/mehngai-monitor/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mehngai-monitor
+Environment="PATH=/home/mehngai/mehngai-monitor/venv/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+# Security: Restart limits
+StartLimitBurst=5
+StartLimitInterval=60s
+
+# Graceful shutdown
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
