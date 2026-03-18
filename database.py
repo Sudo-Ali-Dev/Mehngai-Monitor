@@ -92,3 +92,13 @@ def get_unprocessed():
         return conn.execute(
             "SELECT * FROM seen_images WHERE downloaded = 1 AND processed = 0"
         ).fetchall()
+
+
+def has_processed_image_for_date_category(date: str, category: str) -> bool:
+    """Check if we already have a successfully processed image for this date/category."""
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT id FROM seen_images WHERE date = ? AND category = ? AND processed = 1",
+            (date, category),
+        ).fetchone()
+        return row is not None

@@ -8,6 +8,7 @@ from database import (
     is_url_seen,
     is_hash_seen,
     mark_downloaded,
+    has_processed_image_for_date_category,
 )
 
 BASE_URL = "https://lahore.punjab.gov.pk"
@@ -210,20 +211,25 @@ def run_scraper() -> list[dict]:
         rows = parse_table(soup, category)
         print(f"[SCRAPER] Found {len(rows)} rows for {category}")
 
-        for row in rows:
-            # Skip if URL already in DB
-            if is_url_seen(row["url"]):
-                print(f"[SCRAPER] Already seen: {row['url']}")
-                continue
+        # Only process the latest (first) image for this category
+        if not rows:
+            continue
+        
+        row = rows[0]  # Latest image only
+        
+        # Skip if we already have a successfully processed image for this date/category
+        if has_processed_image_for_date_category(row["date"], row["category"]):
+            print(f"[SCRAPER] Already processed for {row['date']} {row['category']}, skipping.")
+            continue
+        
+        # Mark URL as seen immediately (prevents re-download if scheduler
+        # fires again before OCR finishes)
+        insert_seen_image(row["url"], row["date"], row["category"])
 
-            # Mark URL as seen immediately (prevents re-download if scheduler
-            # fires again before OCR finishes)
-            insert_seen_image(row["url"], row["date"], row["category"])
-
-            # Download the image
-            local_path = download_image(row["url"], row["date"], row["category"])
-            if local_path:
-                new_images.append({**row, "local_path": local_path})
+        # Download and check: if new, save; if duplicate, it's deleted automatically
+        local_path = download_image(row["url"], row["date"], row["category"])
+        if local_path:
+            new_images.append({**row, "local_path": local_path})
 
         # Be polite — small delay between category requests
         time.sleep(2)
