@@ -46,6 +46,18 @@ scheduler.add_job(
 )
 scheduler.start()
 
+# Run scraper on startup
+@app.on_event("startup")
+async def startup_scrape():
+    """Run scraper and OCR immediately on app startup."""
+    print("\n[STARTUP] Running scraper on app startup...")
+    try:
+        run_scraper()
+        run_ocr()
+        print("[STARTUP] Startup scraper job completed successfully.")
+    except Exception as e:
+        print(f"[STARTUP] Error during startup job: {e}")
+
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
 

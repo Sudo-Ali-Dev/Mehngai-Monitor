@@ -2,8 +2,11 @@ import os
 import json
 import base64
 import requests
+from dotenv import load_dotenv
 from database import get_unprocessed, mark_processed, get_conn
 from normalizer import normalize
+
+load_dotenv()  # Load GEMINI_API_KEY from .env file
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_URL = (
