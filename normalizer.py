@@ -12,6 +12,9 @@ import os
 import requests
 from datetime import datetime, timezone
 
+HTTP = requests.Session()
+HTTP.trust_env = False
+
 # ── Paths & Config ──────────────────────────────────────────────────────────
 
 _LOG_DIR  = os.path.join(os.path.dirname(__file__), "data")
@@ -321,7 +324,7 @@ Do not include markdown or backticks.
     }
 
     try:
-        resp = requests.post(GEMINI_URL, json=payload, timeout=30)
+        resp = HTTP.post(GEMINI_URL, json=payload, timeout=30)
         resp.raise_for_status()
         text = resp.json()[( "candidates")][0]["content"]["parts"][0]["text"]
         

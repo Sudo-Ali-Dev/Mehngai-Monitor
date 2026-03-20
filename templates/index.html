@@ -1,246 +1,278 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lahore Market Rates</title>
-    <meta name="description" content="Live daily market price rates for fruits, vegetables, and poultry in Lahore.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    animation: {
-                        'fade-in': 'fadeIn 0.4s ease-out',
-                        'slide-up': 'slideUp 0.4s ease-out',
-                    },
-                    keyframes: {
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { opacity: '0', transform: 'translateY(8px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Row hover */
-        tbody tr { transition: background 0.15s ease; }
-
-        /* Trend badges */
-        .trend-up   { color: #16a34a; background: #f0fdf4; border: 1px solid #bbf7d0; }
-        .trend-down { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; }
-        .trend-flat { color: #6b7280; background: #f9fafb; border: 1px solid #e5e7eb; }
-    </style>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Price History and Analytics | Lahore Market</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: { extend: { colors: {
+    "surface": "#f9f9ff", "surface-container": "#e7eefe", "surface-container-low": "#f0f3ff",
+    "surface-container-lowest": "#ffffff", "surface-container-high": "#e2e8f8",
+    "surface-container-highest": "#dce2f3", "on-surface": "#151c27", "on-surface-variant": "#45464c",
+    "primary": "#000000", "primary-container": "#141b2b", "error": "#ba1a1a",
+    "error-container": "#ffdad6", "on-error-container": "#93000a"
+  } } }
+};
+</script>
+<style>
+body { font-family: 'Inter', sans-serif; }
+.material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+.custom-gradient-btn { background: linear-gradient(135deg, #000000 0%, #141b2b 100%); }
+</style>
 </head>
-<body class="bg-[#FAFAFA] text-gray-900 antialiased min-h-screen" style="font-family:'Inter',sans-serif;">
+<body class="bg-surface text-on-surface antialiased flex flex-col md:flex-row min-h-screen">
+<aside class="hidden md:flex flex-col h-screen p-4 space-y-2 bg-[#f9f9ff] w-64 text-sm font-medium">
+  <div class="px-4 py-6"><h1 class="text-lg font-semibold text-[#151c27]">Categories</h1><p class="text-xs text-on-surface-variant">Market Sectors</p></div>
+  <nav class="flex-1 space-y-1">
+    {% for cat in categories %}
+    <a class="flex items-center px-4 py-3 rounded-md transition-colors {% if cat == category %}bg-[#141b2b] text-white{% else %}text-[#45464c] hover:bg-[#f0f3ff]{% endif %}" href="/analytics?category={{ cat }}">
+      <span class="material-symbols-outlined mr-3">{% if cat == 'fruits' %}ios{% elif cat == 'vegetables' %}flatware{% else %}egg{% endif %}</span><span>{{ cat|capitalize }}</span>
+    </a>
+    {% endfor %}
+  </nav>
+</aside>
 
-<!-- Header -->
-<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-    <div class="flex items-center gap-2.5">
-      <div class="h-7 w-7 rounded-lg bg-gray-900 flex items-center justify-center">
-        <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-        </svg>
-      </div>
-      <span class="text-sm font-semibold text-gray-900 tracking-tight">Lahore Market</span>
+<div class="flex-1 flex flex-col min-h-screen">
+<header class="bg-[#e7eefe] flex justify-between items-center w-full px-6 py-3 sticky top-0 z-50">
+  <div class="flex items-center gap-8">
+    <span class="text-xl font-bold tracking-tight text-[#151c27]">MarketRates</span>
+    <nav class="hidden lg:flex gap-6 items-center">
+      <a class="text-[#45464c] hover:text-[#000000]" href="/dashboard?category={{ category }}&view=today">Dashboard</a>
+      <a class="text-[#000000] border-b-2 border-[#000000] pb-1" href="/analytics?category={{ category }}">Analytics</a>
+      <a class="text-[#45464c] hover:text-[#000000]" href="https://lahore.punjab.gov.pk/" target="_blank" rel="noreferrer">Source</a>
+    </nav>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="relative group hidden sm:block">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">search</span>
+      <input class="pl-9 pr-4 py-1.5 bg-surface-container-highest border-none rounded-md text-sm w-64" id="table-search" placeholder="Search commodities..." type="text"/>
+      <div class="absolute bottom-0 left-0 w-0 h-[2px] bg-primary group-focus-within:w-full transition-all duration-300"></div>
     </div>
-    {% if latest_date %}
-    <span class="text-xs text-gray-400 font-medium">{{ latest_date }}</span>
-    {% endif %}
   </div>
 </header>
 
-<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-slide-up">
-
-    <!-- Category Tabs -->
-    <div class="flex gap-1 mb-6 border-b border-gray-100">
-      {% for cat in categories %}
-      <a href="/?category={{ cat }}"
-         class="px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap
-         {% if cat == category %}
-             text-gray-900 border-b-2 border-gray-900 -mb-px
-         {% else %}
-             text-gray-400 hover:text-gray-600
-         {% endif %}">
-        <span class="capitalize">{{ cat }}</span>
-      </a>
-      {% endfor %}
+<main class="p-6 space-y-8 max-w-7xl mx-auto w-full pb-24 md:pb-6">
+  <section class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <h2 class="text-3xl font-bold tracking-tight">Lahore Market Analytics</h2>
+      <p class="text-on-surface-variant mt-1">{{ category|capitalize }} intelligence board{% if latest_date %} for {{ latest_date }}{% endif %}.</p>
     </div>
-
-    <!-- Date Chips -->
-    {% if dates %}
-    <div class="mb-6">
-        <div class="flex overflow-x-auto gap-1.5 pb-1 scrollbar-hide">
-            {% for d in dates %}
-            <a href="/date/{{ category }}/{{ d }}"
-               class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors whitespace-nowrap
-               {% if d == latest_date %}
-                   bg-gray-900 text-white border-gray-900
-               {% else %}
-                   bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700
-               {% endif %}">
-                {{ d }}
-            </a>
-            {% endfor %}
-        </div>
+    <div class="bg-surface-container-highest p-1 rounded-lg flex" id="range-controls">
+      <button data-days="7" class="px-4 py-1.5 text-xs font-semibold bg-primary text-white rounded-md">1W</button>
+      <button data-days="30" class="px-4 py-1.5 text-xs font-semibold text-on-surface-variant">1M</button>
+      <button data-days="90" class="px-4 py-1.5 text-xs font-semibold text-on-surface-variant">3M</button>
+      <button data-days="365" class="px-4 py-1.5 text-xs font-semibold text-on-surface-variant">1Y</button>
     </div>
-    {% endif %}
+  </section>
 
-    <!-- Table Card -->
-    {% if rates %}
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+  {% if dates %}
+  <section class="flex gap-2 overflow-x-auto pb-1">
+    {% for d in dates %}
+    <a href="/date/{{ category }}/{{ d }}" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold {% if d == latest_date %}bg-primary text-white{% else %}bg-surface-container-low text-on-surface-variant{% endif %}">{{ d }}</a>
+    {% endfor %}
+  </section>
+  {% endif %}
 
-      <!-- Card Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-50">
-        <div>
-          <h1 class="text-sm font-semibold text-gray-900 capitalize">{{ category }} Prices</h1>
-          <p class="text-xs text-gray-400 mt-0.5">Compared to previous trading day</p>
-        </div>
-        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-50 text-xs font-medium text-gray-500 border border-gray-100">
-          <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          {{ rates|length }} items
-        </span>
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="lg:col-span-8 bg-surface-container-lowest p-6 rounded-xl space-y-6">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3"><div class="w-10 h-10 bg-surface-container flex items-center justify-center rounded-lg"><span class="material-symbols-outlined text-primary">show_chart</span></div><div><h3 class="font-semibold text-lg">Price Volatility Index</h3><p class="text-xs text-on-surface-variant">Category average over time</p></div></div>
+        <div class="text-right"><span class="text-2xl font-bold" id="headline-price">PKR --</span><div class="flex items-center text-xs font-semibold justify-end" id="headline-change-wrap"><span class="material-symbols-outlined text-sm" id="headline-icon">trending_flat</span><span id="headline-change">0.0% vs previous point</span></div></div>
       </div>
+      <div class="h-80 w-full bg-surface-container-low rounded-lg overflow-hidden"><div id="main-chart" class="h-full w-full"></div></div>
+    </div>
 
-      <!-- Table -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-gray-50">
-              <th class="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400 w-[40%]">Item</th>
-              <th class="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400">Price 1 <span class="normal-case font-normal">(اول)</span></th>
+    <div class="lg:col-span-4 bg-surface-container-high p-6 rounded-xl flex flex-col justify-between">
+      <div>
+        <h3 class="font-semibold text-lg mb-4">Sector Performance</h3>
+        <div class="space-y-4">
+          {% for s in sector_performance %}
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3"><span class="material-symbols-outlined text-on-surface-variant">{% if s.category == 'fruits' %}nutrition{% elif s.category == 'vegetables' %}eco{% else %}egg{% endif %}</span><span class="text-sm font-medium">{{ s.category|capitalize }}</span></div>
+            <span class="text-sm font-bold {% if s.pct_change > 0.3 %}text-error{% elif s.pct_change < -0.3 %}text-primary{% else %}text-on-surface-variant{% endif %}">{% if s.pct_change > 0 %}+{% endif %}{{ "%.2f"|format(s.pct_change) }}%</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="mt-8 pt-6 border-t border-slate-300/40">
+        <p class="text-xs text-on-surface-variant mb-4">Top movers in {{ category|capitalize }} today:</p>
+        <div class="space-y-2 mb-5">
+          {% for m in insights.top_movers[:3] %}
+          <a href="/trend/{{ category }}/{{ m.item_name|replace(' ', '%20') }}" class="flex items-center justify-between text-xs bg-surface-container-low px-3 py-2 rounded-md">
+            <span class="truncate pr-2">{{ m.item_name }}</span>
+            <span class="font-semibold {% if m.pct_change > 0 %}text-error{% elif m.pct_change < 0 %}text-primary{% else %}text-on-surface-variant{% endif %}">{% if m.pct_change > 0 %}+{% endif %}{{ "%.2f"|format(m.pct_change) }}%</span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-12 bg-surface-container-lowest rounded-xl overflow-hidden">
+      <div class="px-6 py-5 flex justify-between items-center border-b border-outline-variant/10">
+        <h3 class="text-lg font-semibold">{{ category|capitalize }} - Analytics Board</h3>
+        <div class="text-xs text-on-surface-variant">As of {{ latest_date or 'N/A' }}</div>
+      </div>
+      {% if rates %}
+      <div class="w-full overflow-x-auto">
+        <table class="w-full text-left border-collapse" id="rates-table">
+          <thead class="bg-surface-container-low">
+            <tr>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Item Name</th>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant text-right">Price 1 (Min)</th>
               {% if category != 'poultry' %}
-              <th class="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400">Price 2 <span class="normal-case font-normal">(دوئم)</span></th>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant text-right">Price 2 (Max)</th>
               {% endif %}
-              <th class="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400">Unit</th>
-              <th class="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400">Trend</th>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Unit</th>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Trend</th>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant text-right">Last Updated</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-50">
+          <tbody class="divide-y divide-outline-variant/10" id="rates-table-body">
             {% for row in rates %}
-            <tr class="hover:bg-gray-50/70 group">
-
-              <!-- Item (icon + name) -->
-              <td class="px-6 py-3.5">
+            <tr class="hover:bg-surface-container-low transition-colors table-row cursor-pointer" data-href="/trend/{{ category }}/{{ row.item_name|replace(' ', '%20') }}">
+              <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
-                  <div class="h-8 w-8 shrink-0 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-base select-none">
-                    {% if category == 'vegetables' %}🥦
-                    {% elif category == 'fruits' %}🍎
-                    {% elif category == 'poultry' %}🐔
-                    {% elif category == 'meat' %}🥩
-                    {% elif category == 'fish' %}🐟
-                    {% elif category == 'dairy' %}🥛
-                    {% elif category == 'pulses' %}🫘
-                    {% elif category == 'grains' %}🌾
-                    {% elif category == 'spices' %}🌶️
-                    {% else %}🛒
-                    {% endif %}
+                  <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-lg text-primary">{% if category == 'fruits' %}ios{% elif category == 'vegetables' %}eco{% else %}egg{% endif %}</span>
                   </div>
-                  <span class="font-medium text-gray-800 text-sm">{{ row.item_name }}</span>
+                  <span class="font-medium text-on-background item-name">{{ row.item_name }}</span>
                 </div>
               </td>
-
-              <!-- Price 1 -->
-              <td class="px-4 py-3.5 text-gray-700 font-medium tabular-nums">
-                {% if row.min_price %}
-                  Rs {{ row.min_price | int }}
-                {% else %}
-                  <span class="text-gray-300">—</span>
-                {% endif %}
-              </td>
-
-              <!-- Price 2 -->
+              <td class="px-6 py-4 text-right font-mono text-sm">{% if row.min_price %}{{ "%.2f"|format(row.min_price) }}{% else %}-{% endif %}</td>
               {% if category != 'poultry' %}
-              <td class="px-4 py-3.5 text-gray-500 tabular-nums">
-                {% if row.max_price %}
-                  Rs {{ row.max_price | int }}
-                {% else %}
-                  <span class="text-gray-300">—</span>
-                {% endif %}
-              </td>
+              <td class="px-6 py-4 text-right font-mono text-sm">{% if row.max_price %}{{ "%.2f"|format(row.max_price) }}{% else %}-{% endif %}</td>
               {% endif %}
-
-              <!-- Unit -->
-              <td class="px-4 py-3.5">
-                {% if row.unit %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-xs text-gray-500 font-medium">{{ row.unit }}</span>
-                {% else %}
-                <span class="text-gray-300">—</span>
-                {% endif %}
-              </td>
-
-              <!-- Trend -->
-              <td class="px-4 py-3.5">
+              <td class="px-6 py-4 text-sm text-on-surface-variant">{{ row.unit or '-' }}</td>
+              <td class="px-6 py-4">
                 {% if row.trend == 'up' %}
-                <a href="/trend/{{ category }}/{{ row.item_name }}"
-                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold trend-up transition-opacity hover:opacity-75">
-                  <!-- Arrow trending up -->
-                  <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-                  </svg>
-                  Rising
-                </a>
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-error-container text-on-error-container text-[10px] font-bold"><span class="material-symbols-outlined text-[14px]">arrow_upward</span>UP</span>
                 {% elif row.trend == 'down' %}
-                <a href="/trend/{{ category }}/{{ row.item_name }}"
-                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold trend-down transition-opacity hover:opacity-75">
-                  <!-- Arrow trending down -->
-                  <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6L9 12.75l4.306-4.307a11.95 11.95 0 015.814 5.519l2.74 1.22m0 0l-5.94 2.28m5.94-2.28l-2.28-5.941" />
-                  </svg>
-                  Falling
-                </a>
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold"><span class="material-symbols-outlined text-[14px]">arrow_downward</span>DOWN</span>
                 {% else %}
-                <a href="/trend/{{ category }}/{{ row.item_name }}"
-                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold trend-flat transition-opacity hover:opacity-75">
-                  <!-- Minus / flat line -->
-                  <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
-                  </svg>
-                  Stable
-                </a>
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-[10px] font-bold"><span class="material-symbols-outlined text-[14px]">horizontal_rule</span>STABLE</span>
                 {% endif %}
               </td>
-
+              <td class="px-6 py-4 text-right text-xs text-on-surface-variant">{{ latest_date or 'N/A' }}</td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-    </div>
-
-    {% else %}
-    <!-- Empty State -->
-    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm">
-      <div class="flex flex-col items-center justify-center py-20 px-6 text-center">
-        <div class="h-12 w-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-4">
-          <svg class="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-          </svg>
-        </div>
-        <p class="text-sm font-medium text-gray-500">No data for {{ category }} on this date</p>
-        <p class="text-xs text-gray-400 mt-1">Try selecting a different date above</p>
+      <div class="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex justify-between items-center">
+        <p class="text-xs text-on-surface-variant" id="pager-label">Showing <span class="font-bold">0</span> of {{ rates|length }} {{ category }} items</p>
+        <div class="flex gap-1" id="pager-controls"></div>
       </div>
+      {% else %}<div class="p-8 text-sm text-on-surface-variant">No data available for this category/date.</div>{% endif %}
     </div>
-    {% endif %}
-
-    <!-- Footer -->
-    <footer class="mt-10 flex justify-between items-center text-xs text-gray-400">
-      <span>Lahore Market Monitor</span>
-      <span>Built with Python &amp; FastAPI</span>
-    </footer>
-
+  </div>
 </main>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/preline/dist/preline.min.js"></script>
-</body>
-</html>
+<script id="series-json" type="application/json">{{ category_series | tojson }}</script>
+<script>
+document.querySelectorAll('.table-row').forEach((row) => {
+  row.addEventListener('click', () => window.location.href = row.dataset.href);
+});
+
+const rows = Array.from(document.querySelectorAll('#rates-table-body tr'));
+const pageSize = 8;
+let currentPage = 1;
+let filteredRows = [...rows];
+
+function drawPager() {
+  const pages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const controls = document.getElementById('pager-controls');
+  const label = document.getElementById('pager-label');
+  if (!controls || !label) return;
+
+  if (currentPage > pages) currentPage = pages;
+  controls.innerHTML = '';
+
+  const start = (currentPage - 1) * pageSize;
+  const end = Math.min(start + pageSize, filteredRows.length);
+
+  rows.forEach((r) => { r.style.display = 'none'; });
+  filteredRows.forEach((r, idx) => {
+    if (idx >= start && idx < end) r.style.display = '';
+  });
+
+  label.innerHTML = `Showing <span class="font-bold">${filteredRows.length ? start + 1 : 0}-${end}</span> of ${filteredRows.length} {{ category }} items`;
+
+  const prev = document.createElement('button');
+  prev.className = 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
+  prev.innerHTML = '<span class="material-symbols-outlined text-sm">chevron_left</span>';
+  prev.disabled = currentPage === 1;
+  prev.onclick = () => { if (currentPage > 1) { currentPage--; drawPager(); } };
+  controls.appendChild(prev);
+
+  for (let i = 1; i <= pages; i++) {
+    const b = document.createElement('button');
+    b.className = i === currentPage
+      ? 'w-8 h-8 flex items-center justify-center rounded bg-primary text-white text-xs font-bold'
+      : 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant text-xs font-bold';
+    b.textContent = String(i);
+    b.onclick = () => { currentPage = i; drawPager(); };
+    controls.appendChild(b);
+  }
+
+  const next = document.createElement('button');
+  next.className = 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
+  next.innerHTML = '<span class="material-symbols-outlined text-sm">chevron_right</span>';
+  next.disabled = currentPage === pages;
+  next.onclick = () => { if (currentPage < pages) { currentPage++; drawPager(); } };
+  controls.appendChild(next);
+}
+
+drawPager();
+
+const search = document.getElementById('table-search');
+if (search) {
+  search.addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    filteredRows = rows.filter((r) => {
+      const name = r.querySelector('.item-name')?.textContent?.toLowerCase() || '';
+      return name.includes(q);
+    });
+    currentPage = 1;
+    drawPager();
+  });
+}
+
+const series = JSON.parse(document.getElementById('series-json').textContent || '[]');
+const rangeControls = document.getElementById('range-controls');
+function renderSeries(days) {
+  const subset = series.slice(-days);
+  const x = subset.map((d) => d.date);
+  const y = subset.map((d) => d.avg_price);
+  Plotly.newPlot('main-chart', [{ x, y, type: 'scatter', mode: 'lines+markers', line: { color: '#000000', width: 3, shape: 'spline' }, marker: { color: '#000000', size: 6 }, hovertemplate: '<b>PKR %{y:.0f}</b><br>%{x}<extra></extra>' }], { margin: { l: 42, r: 16, t: 18, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: 'Inter, sans-serif', color: '#45464c' }, xaxis: { showgrid: false, zeroline: false, tickangle: -35 }, yaxis: { gridcolor: '#dce2f3', zeroline: false }, hovermode: 'x unified' }, { responsive: true, displayModeBar: false });
+  const headlinePrice = document.getElementById('headline-price');
+  const headlineChange = document.getElementById('headline-change');
+  const headlineWrap = document.getElementById('headline-change-wrap');
+  const headlineIcon = document.getElementById('headline-icon');
+  headlinePrice.textContent = y.length ? `PKR ${Math.round(y[y.length - 1])}` : 'PKR --';
+  let delta = 0;
+  if (y.length > 1 && y[y.length - 2] > 0) delta = ((y[y.length - 1] - y[y.length - 2]) / y[y.length - 2]) * 100;
+  const sign = delta > 0 ? '+' : '';
+  headlineChange.textContent = `${sign}${delta.toFixed(2)}% vs previous point`;
+  if (delta > 0.3) { headlineWrap.className = 'flex items-center text-xs font-semibold justify-end text-error'; headlineIcon.textContent = 'trending_up'; }
+  else if (delta < -0.3) { headlineWrap.className = 'flex items-center text-xs font-semibold justify-end text-primary'; headlineIcon.textContent = 'trending_down'; }
+  else { headlineWrap.className = 'flex items-center text-xs font-semibold justify-end text-on-surface-variant'; headlineIcon.textContent = 'trending_flat'; }
+}
+renderSeries(7);
+if (rangeControls) {
+  rangeControls.querySelectorAll('button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const days = Number(btn.dataset.days || 7);
+      renderSeries(days);
+      rangeControls.querySelectorAll('button').forEach((b) => { b.className = 'px-4 py-1.5 text-xs font-semibold text-on-surface-variant'; });
+      btn.className = 'px-4 py-1.5 text-xs font-semibold bg-primary text-white rounded-md';
+    });
+  });
+}
+</script>
+</body></html>

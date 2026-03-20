@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 from database import get_unprocessed, mark_processed, get_conn
 from normalizer import normalize
 
+HTTP = requests.Session()
+HTTP.trust_env = False
+
 load_dotenv()  # Load GEMINI_API_KEY from .env file
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
@@ -99,7 +102,7 @@ def call_gemini(image_path: str) -> dict | None:
     }
 
     try:
-        resp = requests.post(GEMINI_URL, json=payload, timeout=60)
+        resp = HTTP.post(GEMINI_URL, json=payload, timeout=60)
         resp.raise_for_status()
     except requests.RequestException as e:
         print(f"[OCR] Gemini API error: {e}")

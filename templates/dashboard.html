@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MarketRates - Lahore Daily Price Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "outline-variant": "#c6c6cd",
+          "primary-fixed": "#dce2f7",
+          "on-background": "#151c27",
+          "on-tertiary-fixed-variant": "#93000b",
+          "surface": "#f9f9ff",
+          "surface-variant": "#dce2f3",
+          "on-error-container": "#93000a",
+          "on-tertiary-fixed": "#410002",
+          "tertiary-container": "#410002",
+          "tertiary-fixed": "#ffdad6",
+          "secondary-container": "#dce2f3",
+          "inverse-surface": "#2a313d",
+          "on-tertiary": "#ffffff",
+          "on-primary-container": "#7d8497",
+          "inverse-on-surface": "#ebf1ff",
+          "tertiary-fixed-dim": "#ffb4ab",
+          "on-secondary-fixed": "#151c27",
+          "error": "#ba1a1a",
+          "on-primary-fixed-variant": "#404758",
+          "error-container": "#ffdad6",
+          "on-surface": "#151c27",
+          "surface-container-highest": "#dce2f3",
+          "outline": "#76777d",
+          "on-secondary": "#ffffff",
+          "on-surface-variant": "#45464c",
+          "primary-container": "#141b2b",
+          "background": "#f9f9ff",
+          "on-primary": "#ffffff",
+          "primary": "#000000",
+          "secondary-fixed": "#dce2f3",
+          "surface-tint": "#575e70",
+          "on-secondary-fixed-variant": "#404754",
+          "surface-container-high": "#e2e8f8",
+          "on-secondary-container": "#5e6572",
+          "surface-container-low": "#f0f3ff",
+          "surface-container-lowest": "#ffffff",
+          "secondary-fixed-dim": "#c0c7d6",
+          "inverse-primary": "#c0c6db",
+          "surface-bright": "#f9f9ff",
+          "on-tertiary-container": "#f63a35",
+          "surface-dim": "#d3daea",
+          "tertiary": "#000000",
+          "on-error": "#ffffff",
+          "primary-fixed-dim": "#c0c6db",
+          "surface-container": "#e7eefe",
+          "on-primary-fixed": "#141b2b",
+          "secondary": "#585f6c"
+        },
+        borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  body { font-family: 'Inter', sans-serif; }
+  .glass-panel { background: rgba(240, 243, 255, 0.8); backdrop-filter: blur(12px); }
+</style>
+</head>
+<body class="bg-surface text-on-surface antialiased overflow-hidden">
+<div class="flex h-screen w-full">
+<aside class="hidden md:flex flex-col h-screen p-4 space-y-2 bg-[#f9f9ff] w-64 text-sm font-medium text-[#000000]">
+  <div class="px-4 py-6">
+    <h1 class="text-lg font-semibold text-[#151c27]">Categories</h1>
+    <p class="text-xs text-on-surface-variant font-normal opacity-70">Market Sectors</p>
+  </div>
+  <nav class="flex-1 space-y-1">
+    {% for cat in categories %}
+    <a class="flex items-center gap-3 px-4 py-2.5 rounded-md transition-colors {% if cat == category %}bg-[#141b2b] text-white{% else %}text-[#45464c] hover:bg-[#f0f3ff]{% endif %}" href="/dashboard?category={{ cat }}&view={{ view }}">
+      <span class="material-symbols-outlined">{% if cat == 'fruits' %}ios{% elif cat == 'vegetables' %}flatware{% else %}egg{% endif %}</span>
+      <span>{{ cat|capitalize }}</span>
+    </a>
+    {% endfor %}
+  </nav>
+  <div class="pt-4 border-t border-outline-variant/15">
+    <div class="p-4 bg-surface-container-low rounded-xl">
+      <p class="text-xs uppercase tracking-widest text-on-surface-variant mb-2">Market Status</p>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full {% if volatility_label == 'High' %}bg-red-500{% elif volatility_label == 'Medium' %}bg-amber-500{% else %}bg-emerald-500{% endif %}"></span>
+        <span class="text-xs">{{ volatility_label }} Volatility</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="flex-1 flex flex-col overflow-hidden">
+<header class="flex justify-between items-center w-full px-6 py-3 bg-[#e7eefe]">
+  <div class="flex items-center gap-8">
+    <span class="text-xl font-bold tracking-tight text-[#151c27]">MarketRates</span>
+    <nav class="hidden lg:flex items-center gap-6">
+      <a class="text-[#000000] border-b-2 border-[#000000] pb-1" href="/dashboard?category={{ category }}&view={{ view }}">Dashboard</a>
+      <a class="text-[#45464c] hover:text-[#000000]" href="/analytics?category={{ category }}">Analytics</a>
+      <a class="text-[#45464c] hover:text-[#000000]" href="https://lahore.punjab.gov.pk/" target="_blank" rel="noreferrer">Source</a>
+    </nav>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="relative group">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">search</span>
+      <input class="pl-9 pr-4 py-1.5 bg-surface-container-highest border-none rounded-md text-sm w-64" placeholder="Search commodities..." type="text" id="table-search"/>
+      <div class="absolute bottom-0 left-0 w-0 h-[2px] bg-primary group-focus-within:w-full transition-all duration-300"></div>
+    </div>
+  </div>
+</header>
+
+<section class="flex-1 overflow-y-auto p-6 space-y-8">
+  <div class="flex justify-between items-end gap-4 flex-wrap">
+    <div class="space-y-1">
+      <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/60">Local Market Registry</span>
+      <h2 class="text-4xl font-bold text-on-background tracking-tight">Lahore Daily Rates</h2>
+    </div>
+    <div class="flex items-center gap-2 bg-surface-container-lowest p-1 rounded-xl shadow-sm">
+      <a href="/dashboard?category={{ category }}&view=today" class="px-4 py-2 text-xs font-bold rounded-lg {% if view == 'today' %}text-on-primary bg-primary{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">TODAY</a>
+      <a href="/dashboard?category={{ category }}&view=yesterday" class="px-4 py-2 text-xs font-bold rounded-lg {% if view == 'yesterday' %}text-on-primary bg-primary{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">YESTERDAY</a>
+      <a href="/dashboard?category={{ category }}&view=weekly" class="px-4 py-2 text-xs font-bold rounded-lg {% if view == 'weekly' %}text-on-primary bg-primary{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">WEEKLY</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/10">
+      <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-3">Top Priced Item</p>
+      <div class="h-[88px] flex flex-col justify-between">
+        <span class="text-3xl font-bold tracking-tighter leading-none">Rs. {{ highest_items[0].avg_price|round|int if highest_items else 0 }}</span>
+        <span class="text-sm font-medium text-on-surface-variant/70 truncate leading-5" title="{{ highest_items[0].item_name if highest_items else 'No data' }}">{{ highest_items[0].item_name if highest_items else 'No data' }}</span>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/10">
+      <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-3">Rising Items</p>
+      <div class="h-[88px] flex flex-col justify-between">
+        <span class="text-3xl font-bold tracking-tighter leading-none">{{ insights.up_count }}</span>
+        {% if insights.up_count > 0 %}
+        <span class="text-error text-sm font-medium flex items-center"><span class="material-symbols-outlined text-sm">trending_up</span>Positive</span>
+        {% else %}
+        <span class="text-on-surface-variant/70 text-sm font-medium flex items-center"><span class="material-symbols-outlined text-sm">horizontal_rule</span>Neutral</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/10">
+      <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-3">Falling Items</p>
+      <div class="h-[88px] flex flex-col justify-between">
+        <span class="text-3xl font-bold tracking-tighter leading-none">{{ insights.down_count }}</span>
+        {% if insights.down_count > 0 %}
+        <span class="text-emerald-600 text-sm font-medium flex items-center"><span class="material-symbols-outlined text-sm">trending_down</span>Cooling</span>
+        {% else %}
+        <span class="text-on-surface-variant/70 text-sm font-medium flex items-center"><span class="material-symbols-outlined text-sm">horizontal_rule</span>Neutral</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="bg-primary-container p-5 rounded-xl shadow-lg relative overflow-hidden group">
+      <div class="relative z-10">
+        <p class="text-[10px] font-bold text-primary-fixed uppercase tracking-wider mb-3">Market Volatility</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-3xl font-bold text-on-primary tracking-tighter">{{ volatility_label }}</span>
+        </div>
+      </div>
+      <div class="absolute right-[-10px] bottom-[-10px] opacity-10 group-hover:scale-110 transition-transform duration-500">
+        <span class="material-symbols-outlined text-7xl text-white">analytics</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+    <div class="px-6 py-5 flex justify-between items-center border-b border-outline-variant/10">
+      <h3 class="text-lg font-semibold">{{ category|capitalize }} - Morning Auction</h3>
+      <div class="text-xs text-on-surface-variant">As of {{ latest_date or 'N/A' }}</div>
+    </div>
+    <div class="w-full overflow-x-auto">
+      <table class="w-full text-left border-collapse" id="dash-table">
+        <thead class="bg-surface-container-low">
+          <tr>
+            <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Item Name</th>
+            <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant text-right">Price 1 (Min)</th>
+            {% if category != 'poultry' %}
+            <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant text-right">Price 2 (Max)</th>
+            {% endif %}
+            <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Unit</th>
+            <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Trend</th>
+            <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant text-right">Last Updated</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant/10" id="dash-table-body">
+          {% for row in rates %}
+          <tr class="hover:bg-surface-container-low transition-colors table-row cursor-pointer" data-href="/trend/{{ category }}/{{ row.item_name|replace(' ', '%20') }}">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
+                  <span class="material-symbols-outlined text-lg text-primary">{% if category == 'fruits' %}ios{% elif category == 'vegetables' %}eco{% else %}egg{% endif %}</span>
+                </div>
+                <span class="font-medium text-on-background item-name">{{ row.item_name }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-right font-mono text-sm">{% if row.min_price %}{{ "%.2f"|format(row.min_price) }}{% else %}-{% endif %}</td>
+            {% if category != 'poultry' %}
+            <td class="px-6 py-4 text-right font-mono text-sm">{% if row.max_price %}{{ "%.2f"|format(row.max_price) }}{% else %}-{% endif %}</td>
+            {% endif %}
+            <td class="px-6 py-4 text-sm text-on-surface-variant">{{ row.unit or '-' }}</td>
+            <td class="px-6 py-4">
+              {% if row.trend == 'up' %}
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-error-container text-on-error-container text-[10px] font-bold"><span class="material-symbols-outlined text-[14px]">arrow_upward</span>UP</span>
+              {% elif row.trend == 'down' %}
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold"><span class="material-symbols-outlined text-[14px]">arrow_downward</span>DOWN</span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-[10px] font-bold"><span class="material-symbols-outlined text-[14px]">horizontal_rule</span>STABLE</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-right text-xs text-on-surface-variant">{{ latest_date or 'N/A' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex justify-between items-center">
+      <p class="text-xs text-on-surface-variant" id="pager-label">Showing <span class="font-bold">0</span> of {{ rates|length }} {{ category }} items</p>
+      <div class="flex gap-1" id="pager-controls"></div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10">
+    <div class="bg-[#f0f3ff] p-6 rounded-xl flex items-center gap-6">
+      <div class="w-16 h-16 rounded-full bg-white/50 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-3xl text-primary">verified</span></div>
+      <div>
+        <h4 class="font-bold text-on-background">Official Market Source</h4>
+        <p class="text-sm text-on-surface-variant leading-relaxed">Rates are synchronized from Punjab Agriculture channels daily and normalized with OCR QA before publication.</p>
+      </div>
+    </div>
+    <div class="bg-surface-container-highest/40 p-6 rounded-xl border border-dashed border-outline-variant flex flex-col justify-center">
+      <div class="flex justify-between items-center mb-4">
+        <span class="text-sm font-bold">Volatility Trend Index</span>
+        <span class="text-xs uppercase tracking-tighter bg-primary text-on-primary px-2 py-0.5 rounded">{{ volatility_label }} Week</span>
+      </div>
+      <div class="h-10 w-full flex items-end gap-1" id="vol-bars"></div>
+    </div>
+  </div>
+</section>
+</main>
+</div>
+
+<div class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-outline-variant/10 px-6 py-3 flex justify-between items-center z-50">
+  <a href="/dashboard?category={{ category }}&view={{ view }}" class="flex flex-col items-center gap-1 text-primary"><span class="material-symbols-outlined">dashboard</span><span class="text-[10px] font-bold">Home</span></a>
+  <a href="/analytics?category={{ category }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">list_alt</span><span class="text-[10px] font-bold">Rates</span></a>
+  <a href="/trend/{{ category }}/{{ highest_items[0].item_name|replace(' ', '%20') if highest_items else '' }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">query_stats</span><span class="text-[10px] font-bold">Trends</span></a>
+  <button class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60" type="button"><span class="material-symbols-outlined">person</span><span class="text-[10px] font-bold">Profile</span></button>
+</div>
+
+<script id="series-json" type="application/json">{{ category_series | tojson }}</script>
+<script>
+  document.querySelectorAll('.table-row').forEach((row) => {
+    row.addEventListener('click', () => window.location.href = row.dataset.href);
+  });
+
+  const rows = Array.from(document.querySelectorAll('#dash-table-body tr'));
+  const pageSize = 8;
+  let currentPage = 1;
+  let filteredRows = [...rows];
+
+  function drawPager() {
+    const pages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+    const controls = document.getElementById('pager-controls');
+    const label = document.getElementById('pager-label');
+    if (!controls || !label) return;
+
+    if (currentPage > pages) currentPage = pages;
+    controls.innerHTML = '';
+
+    const start = (currentPage - 1) * pageSize;
+    const end = Math.min(start + pageSize, filteredRows.length);
+
+    rows.forEach((r) => {
+      r.style.display = 'none';
+    });
+    filteredRows.forEach((r, idx) => {
+      if (idx >= start && idx < end) r.style.display = '';
+    });
+
+    label.innerHTML = `Showing <span class="font-bold">${filteredRows.length ? start + 1 : 0}-${end}</span> of ${filteredRows.length} {{ category }} items`;
+
+    const prev = document.createElement('button');
+    prev.className = 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
+    prev.innerHTML = '<span class="material-symbols-outlined text-sm">chevron_left</span>';
+    prev.disabled = currentPage === 1;
+    prev.onclick = () => { if (currentPage > 1) { currentPage--; drawPager(); } };
+    controls.appendChild(prev);
+
+    for (let i = 1; i <= pages; i++) {
+      const b = document.createElement('button');
+      b.className = i === currentPage
+        ? 'w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary text-xs font-bold'
+        : 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant text-xs font-bold';
+      b.textContent = String(i);
+      b.onclick = () => { currentPage = i; drawPager(); };
+      controls.appendChild(b);
+    }
+
+    const next = document.createElement('button');
+    next.className = 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
+    next.innerHTML = '<span class="material-symbols-outlined text-sm">chevron_right</span>';
+    next.disabled = currentPage === pages;
+    next.onclick = () => { if (currentPage < pages) { currentPage++; drawPager(); } };
+    controls.appendChild(next);
+  }
+
+  drawPager();
+
+  const search = document.getElementById('table-search');
+  if (search) {
+    search.addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      filteredRows = rows.filter((r) => {
+        const name = r.querySelector('.item-name')?.textContent?.toLowerCase() || '';
+        return name.includes(q);
+      });
+      currentPage = 1;
+      drawPager();
+    });
+  }
+
+  const series = JSON.parse(document.getElementById('series-json').textContent || '[]');
+  const barsHost = document.getElementById('vol-bars');
+  const last7 = series.slice(-7);
+  const maxVal = Math.max(...last7.map((x) => x.avg_price || 0), 1);
+  barsHost.innerHTML = '';
+  last7.forEach((point, idx) => {
+    const h = Math.max(12, Math.round(((point.avg_price || 0) / maxVal) * 40));
+    const bar = document.createElement('div');
+    bar.className = `flex-1 rounded-t-sm bg-primary/${Math.min(20 + (idx * 10), 100)}`;
+    bar.style.height = `${h}px`;
+    barsHost.appendChild(bar);
+  });
+</script>
+</body></html>

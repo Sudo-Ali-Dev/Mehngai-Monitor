@@ -1,199 +1,218 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ item_name }} Trends</title>
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Plotly via CDN -->
-    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    animation: { 'fade-in': 'fadeIn 0.3s ease-out' },
-                    keyframes: {
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
-                    }
-                }
-            }
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>{{ item_name }} | Item Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "surface": "#f9f9ff",
+          "surface-container": "#e7eefe",
+          "surface-container-low": "#f0f3ff",
+          "surface-container-lowest": "#ffffff",
+          "surface-container-high": "#e2e8f8",
+          "surface-container-highest": "#dce2f3",
+          "on-surface": "#151c27",
+          "on-surface-variant": "#45464c",
+          "primary": "#000000",
+          "primary-container": "#141b2b",
+          "error": "#ba1a1a"
         }
-    </script>
+      }
+    }
+  };
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  body { font-family: 'Inter', sans-serif; }
+  .custom-gradient-btn { background: linear-gradient(135deg, #000000 0%, #141b2b 100%); }
+</style>
 </head>
-<body class="bg-white text-gray-800 antialiased min-h-screen selection:bg-gray-800 selection:text-white flex flex-col">
-
-<!-- Preline Header -->
-<header class="sticky top-0 z-50 flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white/90 backdrop-blur-sm text-sm py-4 border-b border-gray-200">
-  <nav class="max-w-[85rem] w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between" aria-label="Global">
-    <div class="flex items-center gap-x-4">
-        <a href="/?category={{ category }}" class="text-gray-500 hover:text-gray-800 focus:outline-none focus:text-gray-800 transition-colors">
-            <i class="ph ph-arrow-left text-lg"></i>
-        </a>
-        <h1 class="flex-none text-xl font-semibold text-gray-800">Price Trends</h1>
-    </div>
-    <div class="flex items-center">
-        <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-800 uppercase tracking-widest">{{ category }}</span>
-    </div>
-  </nav>
+<body class="bg-surface text-on-surface antialiased min-h-screen">
+<header class="bg-[#e7eefe] text-[#000000] flex justify-between items-center w-full px-6 py-3 sticky top-0 z-50">
+  <div class="flex items-center gap-8">
+    <span class="text-xl font-bold tracking-tight text-[#151c27]">MarketRates</span>
+    <nav class="hidden lg:flex items-center gap-6">
+      <a class="text-[#45464c] hover:text-[#000000]" href="/dashboard?category={{ category }}&view=today">Dashboard</a>
+      <a class="text-[#45464c] hover:text-[#000000]" href="/analytics?category={{ category }}">Analytics</a>
+      <a class="text-[#45464c] hover:text-[#000000]" href="https://lahore.punjab.gov.pk/" target="_blank" rel="noreferrer">Source</a>
+    </nav>
+  </div>
+  <div class="flex items-center gap-3">
+    <span class="px-3 py-1 rounded-md bg-surface-container-highest text-xs font-semibold uppercase tracking-wide">{{ category }}</span>
+    <a href="/dashboard?category={{ category }}&view=today" class="h-9 w-9 rounded-lg bg-white grid place-items-center hover:bg-surface-container-low transition-colors" aria-label="Back to dashboard">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+  </div>
 </header>
 
-<main class="max-w-[85rem] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in flex-grow">
-    
-    <div class="mb-8">
-        <h2 class="text-3xl font-bold text-gray-800">{{ item_name }}</h2>
-        <p class="text-sm font-medium text-gray-500 mt-1">Historical rates over time</p>
+<main class="p-6 max-w-7xl mx-auto space-y-6">
+  <section class="bg-surface-container-lowest rounded-xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">{{ item_name }}</h1>
+      <p class="text-on-surface-variant mt-1">Historical trend view across available market sheets{% if unit %} ({{ unit }}){% endif %}.</p>
     </div>
+    <a href="/dashboard?category={{ category }}&view=today" class="custom-gradient-btn text-white text-sm font-semibold px-4 py-2 rounded-md inline-flex items-center gap-2">
+      <span class="material-symbols-outlined text-sm">grid_view</span>
+      Back to Dashboard
+    </a>
+  </section>
 
-    <div class="mb-16">
-        {% if history %}
-            <!-- Preline Card -->
-            <div class="flex flex-col bg-white border border-gray-200 shadow-sm rounded-xl">
-              <div class="p-4 md:p-5">
-                <div id="chart" class="w-full h-[500px]"></div>
-              </div>
-            </div>
-            
-            <script>
-                const historyData = [
-                    {% for row in history %}
-                        {
-                            "date": "{{ row.date }}",
-                            "min_price": {{ row.min_price if row.min_price else 'null' }},
-                            "max_price": {{ row.max_price if row.max_price else 'null' }}
-                        }{% if not loop.last %},{% endif %}
-                    {% endfor %}
-                ];
+  {% if history %}
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <article class="bg-surface-container-lowest rounded-xl p-4">
+      <p class="text-xs text-on-surface-variant">Latest Average</p>
+      <p class="text-2xl font-bold mt-1">PKR {{ latest_avg|round|int }}</p>
+    </article>
+    <article class="bg-surface-container-lowest rounded-xl p-4">
+      <p class="text-xs text-on-surface-variant">Day-over-Day</p>
+      <p class="text-2xl font-bold mt-1 {% if latest_change > 0.3 %}text-error{% elif latest_change < -0.3 %}text-primary{% else %}text-on-surface{% endif %}">
+        {% if latest_change > 0 %}+{% endif %}{{ "%.2f"|format(latest_change) }}%
+      </p>
+    </article>
+    <article class="bg-surface-container-lowest rounded-xl p-4">
+      <p class="text-xs text-on-surface-variant">Volatility</p>
+      <p class="text-2xl font-bold mt-1">{{ "%.2f"|format(volatility) }}%</p>
+    </article>
+    <article class="bg-surface-container-lowest rounded-xl p-4">
+      <p class="text-xs text-on-surface-variant">Sentiment</p>
+      <p class="text-2xl font-bold mt-1">{{ sentiment }}</p>
+    </article>
+  </section>
 
-                const dates = historyData.map(d => d.date);
-                const price1 = historyData.map(d => d.min_price);
-                const price2 = historyData.map(d => d.max_price);
-
-                const trace1 = {
-                    x: dates,
-                    y: price1,
-                    name: 'Price 1',
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    line: {
-                        color: '#1f2937', /* gray-800 */
-                        width: 2,
-                        shape: 'spline' 
-                    },
-                    marker: {
-                        color: '#1f2937',
-                        size: 6,
-                        symbol: 'circle'
-                    },
-                    hovertemplate: '<b>Rs %{y}</b><br>%{x}<extra></extra>'
-                };
-
-                const trace2 = {
-                    x: dates,
-                    y: price2,
-                    name: 'Price 2',
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    line: {
-                        color: '#9ca3af', /* gray-400 */
-                        width: 2,
-                        dash: 'dot',
-                        shape: 'spline'
-                    },
-                    marker: {
-                        color: '#9ca3af',
-                        size: 6,
-                        symbol: 'circle-open'
-                    },
-                    hovertemplate: '<b>Rs %{y}</b><br>%{x}<extra></extra>'
-                };
-
-                const layout = {
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    plot_bgcolor: 'rgba(0,0,0,0)',
-                    font: {
-                        family: 'Inter, sans-serif',
-                        color: '#6b7280' /* gray-500 */
-                    },
-                    xaxis: { 
-                        showgrid: false,
-                        zeroline: false,
-                        tickfont: { color: '#9ca3af' },
-                        tickangle: -45
-                    },
-                    yaxis: { 
-                        title: { text: 'Price (Rs {{ "per " + unit if unit else "" }})', font: { size: 12, color: '#9ca3af' } },
-                        gridcolor: '#f3f4f6', /* gray-100 */
-                        gridwidth: 1,
-                        zeroline: false,
-                        tickfont: { color: '#4b5563' }
-                    },
-                    hovermode: 'x unified',
-                    hoverlabel: {
-                        bgcolor: 'rgba(31,41,55,0.95)', /* gray-800 dark hover label */
-                        font: { family: 'Inter, sans-serif', color: '#ffffff' },
-                        bordercolor: 'transparent'
-                    },
-                    margin: { t: 20, l: 50, r: 20, b: 60 },
-                    legend: { 
-                        orientation: 'h', 
-                        y: -0.2,
-                        x: 0.5,
-                        xanchor: 'center',
-                        font: { size: 12, color: '#6b7280' }
-                    }
-                };
-
-                const config = { 
-                    responsive: true, 
-                    displayModeBar: false 
-                };
-
-                {% if category == 'poultry' %}
-                Plotly.newPlot('chart', [trace1], layout, config);
-                {% else %}
-                Plotly.newPlot('chart', [trace1, trace2], layout, config);
-                {% endif %}
-            </script>
-        {% else %}
-            <!-- Preline Empty State -->
-            <div class="min-h-[300px] flex flex-col bg-white border border-gray-200 shadow-sm rounded-xl">
-              <div class="flex flex-col justify-center items-center h-full flex-grow p-4 sm:p-6 text-center">
-                <svg class="size-16 text-gray-300" width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M11.5 28.75H23M11.5 17.25H34.5M11.5 23H34.5M34.5 34.5H11.5C9.59502 34.5 8.64253 34.5 7.91572 34.1294C7.27638 33.8034 6.69665 33.2236 6.37057 32.5843C6 31.8575 6 30.905 6 29V11.5C6 9.59502 6 8.64253 6.37057 7.91572C6.69665 7.27638 7.27638 6.69665 7.91572 6.37057C8.64253 6 9.59502 6 11.5 6H34.5C36.405 6 37.3575 6 38.0843 6.37057C38.7236 6.69665 39.3034 7.27638 39.6294 7.91572C40 8.64253 40 9.59502 40 11.5V29C40 30.905 40 31.8575 39.6294 32.5843C39.3034 33.2236 38.7236 33.8034 38.0843 34.1294C37.3575 34.5 36.405 34.5 34.5 34.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <h3 class="mt-4 text-xs tracking-wider uppercase text-gray-500 font-semibold text-center">
-                  No Historical Data
-                </h3>
-                <p class="mt-2 text-sm text-gray-500 mb-6">
-                  We don't have enough data points yet.
-                </p>
-                <a href="/?category={{ category }}" class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors">
-                  Go back to rates
-                </a>
-              </div>
-            </div>
-        {% endif %}
-    </div>
-    
-    <!-- Preline Footer -->
-    <footer class="mt-auto w-full max-w-[85rem] py-10 px-4 sm:px-6 lg:px-8 mx-auto border-t border-gray-200">
-      <div class="flex justify-between items-center text-sm font-medium text-gray-500">
-        <p>Lahore Market Monitor</p>
-        <p>Built by Muhammad Ali with Python & FastAPI</p>
+  <section class="bg-surface-container-lowest rounded-xl p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold">Price History</h2>
+      <div class="bg-surface-container-highest p-1 rounded-lg flex" id="trend-range-controls">
+        <button data-days="14" class="px-3 py-1 text-xs font-semibold bg-primary text-white rounded-md">2W</button>
+        <button data-days="30" class="px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface">1M</button>
+        <button data-days="90" class="px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface">3M</button>
+        <button data-days="365" class="px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface">1Y</button>
       </div>
-    </footer>
+    </div>
+    <div id="trend-chart" class="w-full h-[430px]"></div>
+  </section>
 
+  <section class="bg-surface-container-lowest rounded-xl overflow-hidden">
+    <div class="p-5 border-b border-surface-container-low">
+      <h3 class="font-semibold">Historical Records</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-low">
+          <tr>
+            <th class="px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider text-right">Price 1</th>
+            {% if category != 'poultry' %}<th class="px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider text-right">Price 2</th>{% endif %}
+            <th class="px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider text-right">Average</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container-low">
+          {% for row in history|reverse %}
+          <tr class="hover:bg-surface transition-colors">
+            <td class="px-6 py-3 text-sm font-medium">{{ row.date }}</td>
+            <td class="px-6 py-3 text-sm text-right font-mono">{% if row.min_price %}PKR {{ row.min_price|int }}{% else %}-{% endif %}</td>
+            {% if category != 'poultry' %}<td class="px-6 py-3 text-sm text-right font-mono">{% if row.max_price %}PKR {{ row.max_price|int }}{% else %}-{% endif %}</td>{% endif %}
+            <td class="px-6 py-3 text-sm text-right font-semibold">PKR {{ ((row.min_price or 0) + (row.max_price or row.min_price or 0)) / 2 | round | int }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% else %}
+  <section class="bg-surface-container-lowest rounded-xl p-12 text-center">
+    <p class="text-lg font-semibold">No historical data yet for this item.</p>
+    <p class="text-sm text-on-surface-variant mt-2">Try another item from the category board.</p>
+  </section>
+  {% endif %}
 </main>
 
-<!-- Preline JS CDN -->
-<script src="https://cdn.jsdelivr.net/npm/preline/dist/preline.min.js"></script>
-</body>
-</html>
+<script id="trend-series-json" type="application/json">{{ history_series | tojson }}</script>
+<script id="history-json" type="application/json">{{ history | tojson }}</script>
+<script>
+  const trendSeries = JSON.parse(document.getElementById('trend-series-json').textContent || '[]');
+  const historyRows = JSON.parse(document.getElementById('history-json').textContent || '[]');
+
+  function renderTrend(days) {
+    const subset = trendSeries.slice(-days);
+    const x = subset.map((d) => d.date);
+    const yAvg = subset.map((d) => d.avg_price);
+
+    const traceAvg = {
+      x,
+      y: yAvg,
+      name: 'Average',
+      type: 'scatter',
+      mode: 'lines+markers',
+      line: { color: '#000000', width: 3, shape: 'spline' },
+      marker: { color: '#000000', size: 6 },
+      hovertemplate: '<b>PKR %{y:.0f}</b><br>%{x}<extra></extra>'
+    };
+
+    const layout = {
+      margin: { l: 50, r: 20, t: 10, b: 45 },
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: '#f0f3ff',
+      font: { family: 'Inter, sans-serif', color: '#45464c' },
+      xaxis: { tickfont: { size: 10 }, showgrid: false, zeroline: false, tickangle: -35 },
+      yaxis: { gridcolor: '#dce2f3', zeroline: false, tickfont: { size: 10 } },
+      hovermode: 'x unified'
+    };
+
+    const traces = [traceAvg];
+
+    const minMap = new Map(historyRows.map((r) => [r.date, r.min_price]));
+    const maxMap = new Map(historyRows.map((r) => [r.date, r.max_price]));
+    const hasMax = historyRows.some((r) => r.max_price !== null);
+
+    traces.push({
+      x,
+      y: x.map((d) => minMap.get(d)),
+      name: 'Price 1',
+      type: 'scatter',
+      mode: 'lines',
+      line: { color: '#575e70', width: 1.8, dash: 'dot' },
+      hovertemplate: '<b>PKR %{y:.0f}</b><br>%{x}<extra></extra>'
+    });
+
+    if (hasMax) {
+      traces.push({
+        x,
+        y: x.map((d) => maxMap.get(d)),
+        name: 'Price 2',
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#ba1a1a', width: 1.8, dash: 'dot' },
+        hovertemplate: '<b>PKR %{y:.0f}</b><br>%{x}<extra></extra>'
+      });
+    }
+
+    Plotly.newPlot('trend-chart', traces, layout, { responsive: true, displayModeBar: false });
+  }
+
+  renderTrend(14);
+
+  const trendRangeControls = document.getElementById('trend-range-controls');
+  if (trendRangeControls) {
+    trendRangeControls.querySelectorAll('button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const days = Number(btn.dataset.days || 14);
+        renderTrend(days);
+        trendRangeControls.querySelectorAll('button').forEach((b) => {
+          b.className = 'px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface';
+        });
+        btn.className = 'px-3 py-1 text-xs font-semibold bg-primary text-white rounded-md';
+      });
+    });
+  }
+</script>
+</body></html>

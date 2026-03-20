@@ -123,6 +123,8 @@ def migrate_canonicalize():
             import json
             import requests
             from normalizer import GEMINI_URL, GEMINI_API_KEY
+            http = requests.Session()
+            http.trust_env = False
             
             if not GEMINI_API_KEY:
                 print(f"  [CANON] Skipping AI canonicalize: GEMINI_API_KEY not set")
@@ -153,7 +155,7 @@ Only include names that need to change. If a name is already the elected best na
 
             print(f"  [CANON] Calling Gemini for {category} global deduplication...")
             try:
-                resp = requests.post(GEMINI_URL, json=payload, timeout=45)
+                resp = http.post(GEMINI_URL, json=payload, timeout=45)
                 resp.raise_for_status()
                 text = resp.json()[( "candidates")][0]["content"]["parts"][0]["text"]
                 text = text.strip()

@@ -29,41 +29,12 @@ HEADERS = {
     )
 }
 
-# ── Proxy Configuration ────────────────────────────────────────────────────────
-# Add your working proxies here. Format: "http://ip:port" or "https://ip:port"
-# Example: ["http://proxy1.com:8080", "http://proxy2.com:8080"]
-PROXIES_LIST = [
-    "http://43.245.131.90:8080",
-    "http://103.115.198.177:8082",
-    "http://103.205.178.226:8080",
-    "http://103.66.149.194:8080",
-    "http://202.165.232.238:8080",
-    "http://103.197.47.42:8080",
-    "http://154.208.58.89:8080",
-]
-
-PROXY_INDEX = 0
+# Force direct networking for now and ignore OS/env proxy variables.
+HTTP = requests.Session()
+HTTP.trust_env = False
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
-
-def get_next_proxy() -> dict | None:
-    """
-    Get the next proxy from the rotation list.
-    Returns a dict for requests.get(proxies=dict) or None if no proxies configured.
-    """
-    global PROXY_INDEX
-    
-    if not PROXIES_LIST:
-        return None
-    
-    proxy = PROXIES_LIST[PROXY_INDEX % len(PROXIES_LIST)]
-    PROXY_INDEX += 1
-    
-    return {
-        "http": proxy,
-        "https": proxy,
-    }
 
 
 def md5_of_bytes(data: bytes) -> str:
@@ -80,34 +51,21 @@ def image_save_path(date: str, category: str) -> str:
 
 def fetch_page(url: str) -> BeautifulSoup | None:
     """
-    Fetch a page with proxy rotation, retry logic, and fallback to no proxy.
-    Retries each proxy up to 2 times before moving to the next one.
+    Fetch a page directly (no proxy) with retry logic.
     """
-    proxies_to_try = [None]  # Start with no proxy
-    
-    if PROXIES_LIST:
-        # Try proxies first before falling back to no proxy
-        proxies_to_try = [get_next_proxy() for _ in range(min(3, len(PROXIES_LIST)))] + [None]
-    
-    max_retries = 2  # Retry each proxy up to 2 times
-    
-    for proxies in proxies_to_try:
-        for attempt in range(max_retries + 1):
-            try:
-                proxy_info = f" (via {proxies['https']})" if proxies else ""
-                attempt_info = f" (attempt {attempt + 1}/{max_retries + 1})" if attempt > 0 else ""
-                resp = requests.get(url, headers=HEADERS, timeout=30, proxies=proxies)
-                resp.raise_for_status()
-                print(f"[SCRAPER] Fetched {url}{proxy_info}")
-                return BeautifulSoup(resp.text, "html.parser")
-            except requests.RequestException as e:
-                proxy_info = f" (via {proxies['https']})" if proxies else ""
-                attempt_info = f" (attempt {attempt + 1}/{max_retries + 1})" if attempt < max_retries else ""
-                print(f"[SCRAPER] Failed to fetch {url}{proxy_info}{attempt_info}: {e}")
-                # If we've exhausted retries for this proxy, try the next one
-                if attempt == max_retries:
-                    continue
-                # Otherwise, retry the same proxy
+    max_retries = 2
+
+    for attempt in range(max_retries + 1):
+        try:
+            attempt_info = f" (attempt {attempt + 1}/{max_retries + 1})" if attempt > 0 else ""
+            resp = HTTP.get(url, headers=HEADERS, timeout=30)
+            resp.raise_for_status()
+            print(f"[SCRAPER] Fetched {url}")
+            return BeautifulSoup(resp.text, "html.parser")
+        except requests.RequestException as e:
+            attempt_info = f" (attempt {attempt + 1}/{max_retries + 1})" if attempt < max_retries else ""
+            print(f"[SCRAPER] Failed to fetch {url}{attempt_info}: {e}")
+            if attempt < max_retries:
                 time.sleep(1)
     
     print(f"[SCRAPER] All attempts failed for {url}")
@@ -150,28 +108,14 @@ def parse_table(soup: BeautifulSoup, category: str) -> list[dict]:
 
 def download_image(url: str, date: str, category: str) -> str | None:
     """
-    Download the image with proxy rotation, check for MD5 dupe, save to disk.
+    Download image directly (no proxy), check for MD5 dupe, and save to disk.
     Returns the local file path if successful, None otherwise.
     """
-    proxies_to_try = [None]  # Start with no proxy
-    
-    if PROXIES_LIST:
-        # Try proxies first before falling back to no proxy
-        proxies_to_try = [get_next_proxy() for _ in range(min(3, len(PROXIES_LIST)))] + [None]
-    
-    for proxies in proxies_to_try:
-        try:
-            proxy_info = f" (via {proxies['https']})" if proxies else ""
-            resp = requests.get(url, headers=HEADERS, timeout=30, proxies=proxies)
-            resp.raise_for_status()
-            break  # Success, stop trying proxies
-        except requests.RequestException as e:
-            proxy_info = f" (via {proxies['https']})" if proxies else ""
-            print(f"[SCRAPER] Download failed for {url}{proxy_info}: {e}")
-            continue
-    else:
-        # All proxy attempts failed
-        print(f"[SCRAPER] All proxy attempts exhausted for {url}")
+    try:
+        resp = HTTP.get(url, headers=HEADERS, timeout=30)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"[SCRAPER] Download failed for {url}: {e}")
         return None
 
     image_data = resp.content
