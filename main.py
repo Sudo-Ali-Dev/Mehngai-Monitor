@@ -222,6 +222,9 @@ def _dashboard_context(conn, category: str, selected_date: str | None):
     series = _category_time_series(conn, category, latest, 365)
     insights = _dashboard_insights(category, rates, sector)
 
+    vol = insights["volatility"]
+    volatility_label = "Low" if vol < 1.5 else "Medium" if vol < 3.5 else "High"
+
     return {
         "category": category,
         "rates": rates,
@@ -231,6 +234,7 @@ def _dashboard_context(conn, category: str, selected_date: str | None):
         "sector_performance": sector,
         "category_series": series,
         "insights": insights,
+        "volatility_label": volatility_label,
     }
 
 

@@ -74,24 +74,52 @@
 <body class="bg-surface text-on-surface antialiased overflow-hidden">
 <div class="flex h-screen w-full">
 <aside class="hidden md:flex flex-col h-screen p-4 space-y-2 bg-[#f9f9ff] w-64 text-sm font-medium text-[#000000]">
-  <div class="px-4 py-6">
+  <div class="px-4 pt-0 pb-3">
+    <a href="/dashboard" class="flex items-center gap-2.5 group">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="10" fill="#141b2b"/>
+        <path d="M8 24L13 18L17 21L23 13L28 16" stroke="#c0c6db" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="13" cy="18" r="1.8" fill="#c0c6db"/>
+        <circle cx="17" cy="21" r="1.8" fill="#c0c6db"/>
+        <circle cx="23" cy="13" r="1.8" fill="#fff"/>
+        <path d="M10 27.5h16" stroke="#c0c6db" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>
+      </svg>
+      <div>
+        <span class="text-base font-bold tracking-tight text-[#141b2b] leading-tight">Market<span class="text-on-surface-variant">Rates</span></span>
+        <p class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5">Lahore Price Tracker</p>
+      </div>
+    </a>
+  </div>
+  <div class="px-4 pb-2 pt-3 border-t border-outline-variant/10">
     <h1 class="text-lg font-semibold text-[#151c27]">Categories</h1>
     <p class="text-xs text-on-surface-variant font-normal opacity-70">Market Sectors</p>
   </div>
   <nav class="flex-1 space-y-1">
     {% for cat in categories %}
     <a class="flex items-center gap-3 px-4 py-2.5 rounded-md transition-colors {% if cat == category %}bg-[#141b2b] text-white{% else %}text-[#45464c] hover:bg-[#f0f3ff]{% endif %}" href="/dashboard?category={{ cat }}&view={{ view }}">
-      <span class="material-symbols-outlined">{% if cat == 'fruits' %}ios{% elif cat == 'vegetables' %}flatware{% else %}egg{% endif %}</span>
+      <span class="material-symbols-outlined">{% if cat == 'fruits' %}nutrition{% elif cat == 'vegetables' %}eco{% else %}egg{% endif %}</span>
       <span>{{ cat|capitalize }}</span>
     </a>
     {% endfor %}
   </nav>
   <div class="pt-4 border-t border-outline-variant/15">
-    <div class="p-4 bg-surface-container-low rounded-xl">
-      <p class="text-xs uppercase tracking-widest text-on-surface-variant mb-2">Market Status</p>
+    <div class="p-4 bg-surface-container-low rounded-xl space-y-3">
+      <p class="text-xs uppercase tracking-widest text-on-surface-variant">Market Status</p>
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 rounded-full {% if volatility_label == 'High' %}bg-red-500{% elif volatility_label == 'Medium' %}bg-amber-500{% else %}bg-emerald-500{% endif %}"></span>
         <span class="text-xs">{{ volatility_label }} Volatility</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+        <span class="text-xs">{{ insights.up_count }} Rising</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="text-xs">{{ insights.down_count }} Falling</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+        <span class="text-xs">{{ insights.flat_count }} Stable</span>
       </div>
     </div>
   </div>
@@ -100,11 +128,10 @@
 <main class="flex-1 flex flex-col overflow-hidden">
 <header class="flex justify-between items-center w-full px-6 py-3 bg-[#e7eefe]">
   <div class="flex items-center gap-8">
-    <span class="text-xl font-bold tracking-tight text-[#151c27]">MarketRates</span>
     <nav class="hidden lg:flex items-center gap-6">
       <a class="text-[#000000] border-b-2 border-[#000000] pb-1" href="/dashboard?category={{ category }}&view={{ view }}">Dashboard</a>
       <a class="text-[#45464c] hover:text-[#000000]" href="/analytics?category={{ category }}">Analytics</a>
-      <a class="text-[#45464c] hover:text-[#000000]" href="https://lahore.punjab.gov.pk/" target="_blank" rel="noreferrer">Source</a>
+      <a class="text-[#45464c] hover:text-[#000000]" href="https://lahore.punjab.gov.pk/market_rates" target="_blank" rel="noreferrer">Source</a>
     </nav>
   </div>
   <div class="flex items-center gap-4">
@@ -200,7 +227,7 @@
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
-                  <span class="material-symbols-outlined text-lg text-primary">{% if category == 'fruits' %}ios{% elif category == 'vegetables' %}eco{% else %}egg{% endif %}</span>
+                  <span class="material-symbols-outlined text-lg text-primary">{% if category == 'fruits' %}nutrition{% elif category == 'vegetables' %}eco{% else %}egg{% endif %}</span>
                 </div>
                 <span class="font-medium text-on-background item-name">{{ row.item_name }}</span>
               </div>
@@ -236,7 +263,7 @@
       <div class="w-16 h-16 rounded-full bg-white/50 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-3xl text-primary">verified</span></div>
       <div>
         <h4 class="font-bold text-on-background">Official Market Source</h4>
-        <p class="text-sm text-on-surface-variant leading-relaxed">Rates are synchronized from Punjab Agriculture channels daily and normalized with OCR QA before publication.</p>
+        <p class="text-sm text-on-surface-variant leading-relaxed">Rates are sourced from <a href="https://lahore.punjab.gov.pk/market_rates" target="_blank" rel="noreferrer" class="underline hover:text-on-background">District Lahore, Government of the Punjab</a> daily and normalized with OCR QA before publication.</p>
       </div>
     </div>
     <div class="bg-surface-container-highest/40 p-6 rounded-xl border border-dashed border-outline-variant flex flex-col justify-center">

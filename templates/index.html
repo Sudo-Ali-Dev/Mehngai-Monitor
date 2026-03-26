@@ -11,11 +11,12 @@
 tailwind.config = {
   darkMode: "class",
   theme: { extend: { colors: {
+    "outline-variant": "#c6c6cd",
     "surface": "#f9f9ff", "surface-container": "#e7eefe", "surface-container-low": "#f0f3ff",
     "surface-container-lowest": "#ffffff", "surface-container-high": "#e2e8f8",
     "surface-container-highest": "#dce2f3", "on-surface": "#151c27", "on-surface-variant": "#45464c",
-    "primary": "#000000", "primary-container": "#141b2b", "error": "#ba1a1a",
-    "error-container": "#ffdad6", "on-error-container": "#93000a"
+    "on-background": "#151c27", "primary": "#000000", "primary-container": "#141b2b",
+    "error": "#ba1a1a", "error-container": "#ffdad6", "on-error-container": "#93000a"
   } } }
 };
 </script>
@@ -25,26 +26,67 @@ body { font-family: 'Inter', sans-serif; }
 .custom-gradient-btn { background: linear-gradient(135deg, #000000 0%, #141b2b 100%); }
 </style>
 </head>
-<body class="bg-surface text-on-surface antialiased flex flex-col md:flex-row min-h-screen">
-<aside class="hidden md:flex flex-col h-screen p-4 space-y-2 bg-[#f9f9ff] w-64 text-sm font-medium">
-  <div class="px-4 py-6"><h1 class="text-lg font-semibold text-[#151c27]">Categories</h1><p class="text-xs text-on-surface-variant">Market Sectors</p></div>
+<body class="bg-surface text-on-surface antialiased overflow-hidden">
+<div class="flex h-screen w-full">
+<aside class="hidden md:flex flex-col h-screen p-4 space-y-2 bg-[#f9f9ff] w-64 text-sm font-medium text-[#000000]">
+  <div class="px-4 pt-0 pb-3">
+    <a href="/dashboard" class="flex items-center gap-2.5 group">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="10" fill="#141b2b"/>
+        <path d="M8 24L13 18L17 21L23 13L28 16" stroke="#c0c6db" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="13" cy="18" r="1.8" fill="#c0c6db"/>
+        <circle cx="17" cy="21" r="1.8" fill="#c0c6db"/>
+        <circle cx="23" cy="13" r="1.8" fill="#fff"/>
+        <path d="M10 27.5h16" stroke="#c0c6db" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>
+      </svg>
+      <div>
+        <span class="text-base font-bold tracking-tight text-[#141b2b] leading-tight">Market<span class="text-on-surface-variant">Rates</span></span>
+        <p class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5">Lahore Price Tracker</p>
+      </div>
+    </a>
+  </div>
+  <div class="px-4 pb-2 pt-3">
+    <h1 class="text-lg font-semibold text-[#151c27]">Categories</h1>
+    <p class="text-xs text-on-surface-variant font-normal opacity-70">Market Sectors</p>
+  </div>
   <nav class="flex-1 space-y-1">
     {% for cat in categories %}
-    <a class="flex items-center px-4 py-3 rounded-md transition-colors {% if cat == category %}bg-[#141b2b] text-white{% else %}text-[#45464c] hover:bg-[#f0f3ff]{% endif %}" href="/analytics?category={{ cat }}">
-      <span class="material-symbols-outlined mr-3">{% if cat == 'fruits' %}ios{% elif cat == 'vegetables' %}flatware{% else %}egg{% endif %}</span><span>{{ cat|capitalize }}</span>
+    <a class="flex items-center gap-3 px-4 py-2.5 rounded-md transition-colors {% if cat == category %}bg-[#141b2b] text-white{% else %}text-[#45464c] hover:bg-[#f0f3ff]{% endif %}" href="/analytics?category={{ cat }}">
+      <span class="material-symbols-outlined">{% if cat == 'fruits' %}nutrition{% elif cat == 'vegetables' %}eco{% else %}egg{% endif %}</span>
+      <span>{{ cat|capitalize }}</span>
     </a>
     {% endfor %}
   </nav>
+  <div class="pt-4">
+    <div class="p-4 bg-surface-container-low rounded-xl space-y-3">
+      <p class="text-xs uppercase tracking-widest text-on-surface-variant">Market Status</p>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full {% if volatility_label == 'High' %}bg-red-500{% elif volatility_label == 'Medium' %}bg-amber-500{% else %}bg-emerald-500{% endif %}"></span>
+        <span class="text-xs">{{ volatility_label }} Volatility</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+        <span class="text-xs">{{ insights.up_count }} Rising</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="text-xs">{{ insights.down_count }} Falling</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+        <span class="text-xs">{{ insights.flat_count }} Stable</span>
+      </div>
+    </div>
+  </div>
 </aside>
 
-<div class="flex-1 flex flex-col min-h-screen">
+<main class="flex-1 flex flex-col overflow-hidden">
 <header class="bg-[#e7eefe] flex justify-between items-center w-full px-6 py-3 sticky top-0 z-50">
   <div class="flex items-center gap-8">
-    <span class="text-xl font-bold tracking-tight text-[#151c27]">MarketRates</span>
     <nav class="hidden lg:flex gap-6 items-center">
       <a class="text-[#45464c] hover:text-[#000000]" href="/dashboard?category={{ category }}&view=today">Dashboard</a>
       <a class="text-[#000000] border-b-2 border-[#000000] pb-1" href="/analytics?category={{ category }}">Analytics</a>
-      <a class="text-[#45464c] hover:text-[#000000]" href="https://lahore.punjab.gov.pk/" target="_blank" rel="noreferrer">Source</a>
+      <a class="text-[#45464c] hover:text-[#000000]" href="https://lahore.punjab.gov.pk/market_rates" target="_blank" rel="noreferrer">Source</a>
     </nav>
   </div>
   <div class="flex items-center gap-4">
@@ -56,7 +98,7 @@ body { font-family: 'Inter', sans-serif; }
   </div>
 </header>
 
-<main class="p-6 space-y-8 max-w-7xl mx-auto w-full pb-24 md:pb-6">
+<section class="flex-1 overflow-y-auto p-6 space-y-8">
   <section class="flex flex-col md:flex-row md:items-end justify-between gap-4">
     <div>
       <h2 class="text-3xl font-bold tracking-tight">Lahore Market Analytics</h2>
@@ -138,7 +180,7 @@ body { font-family: 'Inter', sans-serif; }
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
-                    <span class="material-symbols-outlined text-lg text-primary">{% if category == 'fruits' %}ios{% elif category == 'vegetables' %}eco{% else %}egg{% endif %}</span>
+                    <span class="material-symbols-outlined text-lg text-primary">{% if category == 'fruits' %}nutrition{% elif category == 'vegetables' %}eco{% else %}egg{% endif %}</span>
                   </div>
                   <span class="font-medium text-on-background item-name">{{ row.item_name }}</span>
                 </div>
@@ -170,6 +212,7 @@ body { font-family: 'Inter', sans-serif; }
       {% else %}<div class="p-8 text-sm text-on-surface-variant">No data available for this category/date.</div>{% endif %}
     </div>
   </div>
+</section>
 </main>
 </div>
 
