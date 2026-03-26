@@ -155,28 +155,21 @@ def run_scraper() -> list[dict]:
         rows = parse_table(soup, category)
         print(f"[SCRAPER] Found {len(rows)} rows for {category}")
 
-        # Only process the latest (first) image for this category
         if not rows:
             continue
-        
-        row = rows[0]  # Latest image only
-        
-        # Skip if we already have a successfully processed image for this date/category
-        if has_processed_image_for_date_category(row["date"], row["category"]):
-            print(f"[SCRAPER] Already processed for {row['date']} {row['category']}, skipping.")
-            continue
-        
-        # Mark URL as seen immediately (prevents re-download if scheduler
-        # fires again before OCR finishes)
-        insert_seen_image(row["url"], row["date"], row["category"])
 
-        # Download and check: if new, save; if duplicate, it's deleted automatically
-        local_path = download_image(row["url"], row["date"], row["category"])
-        if local_path:
-            new_images.append({**row, "local_path": local_path})
+        for row in rows:
+            if has_processed_image_for_date_category(row["date"], row["category"]):
+                print(f"[SCRAPER] Already processed for {row['date']} {row['category']}, skipping.")
+                continue
 
-        # Be polite — small delay between category requests
-        time.sleep(2)
+            insert_seen_image(row["url"], row["date"], row["category"])
+
+            local_path = download_image(row["url"], row["date"], row["category"])
+            if local_path:
+                new_images.append({**row, "local_path": local_path})
+
+            time.sleep(2)
 
     print(f"[SCRAPER] Done. {len(new_images)} new image(s) downloaded.")
     return new_images
