@@ -1,5 +1,5 @@
 [Unit]
-Description=Mehngai Monitor - Pakistan Market Rates Tracker
+Description=Mehngai Monitor – Lahore retail price tracker
 After=network.target
 StartLimitIntervalSec=0
 

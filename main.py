@@ -411,7 +411,7 @@ def item_trend(request: Request, category: str, item_name: str):
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  Lahore Market Rates")
+    print("  Mehngai Monitor")
     print("=" * 50)
 
     # 1. Init DB
