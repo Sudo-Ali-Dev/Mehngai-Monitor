@@ -52,7 +52,6 @@ python -m unittest test_normalizer -v
 
 ## Known Limitations
 
-- The website is not mobile optimized yet.
 - OCR quality depends on source image quality and Gemini extraction output.
 
 ## Data Source
