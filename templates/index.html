@@ -82,7 +82,8 @@ body { font-family: 'Inter', sans-serif; }
 
 <main class="flex-1 min-w-0 flex flex-col overflow-hidden">
 <header class="bg-[#e7eefe] flex flex-wrap justify-between items-center gap-3 w-full px-4 sm:px-6 py-3 sticky top-0 z-50">
-  <div class="flex items-center gap-8">
+  <div class="flex items-center gap-4">
+    <a href="/analytics?category={{ category }}" class="lg:hidden text-base font-semibold tracking-tight text-[#151c27]">Mehngai Monitor</a>
     <nav class="hidden lg:flex gap-6 items-center">
       <a class="text-[#45464c] hover:text-[#000000]" href="/dashboard?category={{ category }}&view=today">Dashboard</a>
       <a class="text-[#000000] border-b-2 border-[#000000] pb-1" href="/analytics?category={{ category }}">Analytics</a>
@@ -92,13 +93,25 @@ body { font-family: 'Inter', sans-serif; }
   <div class="flex items-center gap-4">
     <div class="relative group hidden sm:block">
       <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">search</span>
-      <input class="pl-9 pr-4 py-1.5 bg-surface-container-highest border-none rounded-md text-sm w-44 md:w-64" id="table-search" placeholder="Search commodities..." type="text"/>
+      <input class="table-search-input pl-9 pr-4 py-1.5 bg-surface-container-highest border-none rounded-md text-sm w-44 md:w-64" id="table-search-desktop" placeholder="Search commodities..." type="text"/>
       <div class="absolute bottom-0 left-0 w-0 h-[2px] bg-primary group-focus-within:w-full transition-all duration-300"></div>
     </div>
   </div>
 </header>
 
-<section class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 pb-8">
+<section class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 pb-28 md:pb-8">
+  <div class="md:hidden space-y-3">
+    <div class="flex items-center gap-2 overflow-x-auto pb-1">
+      {% for cat in categories %}
+      <a href="/analytics?category={{ cat }}" class="shrink-0 px-3 py-2 rounded-lg text-xs font-semibold {% if cat == category %}bg-primary text-on-primary{% else %}bg-surface-container-low text-on-surface-variant{% endif %}">{{ cat|capitalize }}</a>
+      {% endfor %}
+    </div>
+    <div class="relative">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">search</span>
+      <input class="table-search-input w-full pl-9 pr-4 py-2 bg-surface-container-highest border-none rounded-lg text-sm" id="table-search-mobile" placeholder="Search commodities..." type="text"/>
+    </div>
+  </div>
+
   <section class="flex flex-col md:flex-row md:items-end justify-between gap-4">
     <div>
       <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Lahore Market Analytics</h2>
@@ -160,7 +173,45 @@ body { font-family: 'Inter', sans-serif; }
         <div class="text-xs text-on-surface-variant">As of {{ latest_date or 'N/A' }}</div>
       </div>
       {% if rates %}
-      <div class="w-full overflow-x-auto">
+      <div class="md:hidden divide-y divide-outline-variant/10" id="mobile-rates-list">
+        {% for row in rates %}
+        <a href="/trend/{{ category }}/{{ row.item_name|replace(' ', '%20') }}" class="mobile-rate-card block p-4 hover:bg-surface-container-low transition-colors" data-item-name="{{ row.item_name|lower }}">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold text-on-background">{{ row.item_name }}</p>
+              <p class="text-xs text-on-surface-variant mt-1">{{ row.unit or '-' }}</p>
+            </div>
+            <div>
+              {% if row.trend == 'up' %}
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-error-container text-on-error-container text-[11px] font-bold"><span class="material-symbols-outlined text-sm">arrow_upward</span>UP</span>
+              {% elif row.trend == 'down' %}
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold"><span class="material-symbols-outlined text-sm">arrow_downward</span>DOWN</span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-bold"><span class="material-symbols-outlined text-sm">horizontal_rule</span>STABLE</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="grid {% if category == 'poultry' %}grid-cols-2{% else %}grid-cols-3{% endif %} gap-2 mt-3 text-xs">
+            <div class="rounded-lg bg-surface-container-low px-2 py-2">
+              <p class="text-on-surface-variant">Price 1</p>
+              <p class="font-semibold mt-1">{% if row.min_price %}{{ "%.2f"|format(row.min_price) }}{% else %}-{% endif %}</p>
+            </div>
+            {% if category != 'poultry' %}
+            <div class="rounded-lg bg-surface-container-low px-2 py-2">
+              <p class="text-on-surface-variant">Price 2</p>
+              <p class="font-semibold mt-1">{% if row.max_price %}{{ "%.2f"|format(row.max_price) }}{% else %}-{% endif %}</p>
+            </div>
+            {% endif %}
+            <div class="rounded-lg bg-surface-container-low px-2 py-2">
+              <p class="text-on-surface-variant">Updated</p>
+              <p class="font-semibold mt-1">{{ latest_date or 'N/A' }}</p>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+
+      <div class="hidden md:block w-full overflow-x-auto">
         <table class="min-w-[760px] w-full text-left border-collapse" id="rates-table">
           <thead class="bg-surface-container-low">
             <tr>
@@ -205,7 +256,7 @@ body { font-family: 'Inter', sans-serif; }
           </tbody>
         </table>
       </div>
-      <div class="px-4 sm:px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
+      <div class="hidden md:flex px-4 sm:px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
         <p class="text-xs text-on-surface-variant" id="pager-label">Showing <span class="font-bold">0</span> of {{ rates|length }} {{ category }} items</p>
         <div class="flex gap-1 overflow-x-auto max-w-full" id="pager-controls"></div>
       </div>
@@ -216,6 +267,17 @@ body { font-family: 'Inter', sans-serif; }
 </main>
 </div>
 
+{% set trend_target = insights.top_movers[0].item_name if insights.top_movers else None %}
+<div class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-outline-variant/10 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex justify-around items-center z-50">
+  <a href="/dashboard?category={{ category }}&view=today" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">dashboard</span><span class="text-[10px] font-bold">Home</span></a>
+  <a href="/analytics?category={{ category }}" class="flex flex-col items-center gap-1 text-primary"><span class="material-symbols-outlined">list_alt</span><span class="text-[10px] font-bold">Rates</span></a>
+  {% if trend_target %}
+  <a href="/trend/{{ category }}/{{ trend_target|replace(' ', '%20') }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">query_stats</span><span class="text-[10px] font-bold">Trends</span></a>
+  {% else %}
+  <a href="/analytics?category={{ category }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">query_stats</span><span class="text-[10px] font-bold">Trends</span></a>
+  {% endif %}
+</div>
+
 <script id="series-json" type="application/json">{{ category_series | tojson }}</script>
 <script>
 document.querySelectorAll('.table-row').forEach((row) => {
@@ -223,6 +285,7 @@ document.querySelectorAll('.table-row').forEach((row) => {
 });
 
 const rows = Array.from(document.querySelectorAll('#rates-table-body tr'));
+const mobileCards = Array.from(document.querySelectorAll('.mobile-rate-card'));
 const pageSize = 8;
 let currentPage = 1;
 let filteredRows = [...rows];
@@ -247,7 +310,7 @@ function drawPager() {
   label.innerHTML = `Showing <span class="font-bold">${filteredRows.length ? start + 1 : 0}-${end}</span> of ${filteredRows.length} {{ category }} items`;
 
   const prev = document.createElement('button');
-  prev.className = 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
+  prev.className = 'w-10 h-10 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
   prev.innerHTML = '<span class="material-symbols-outlined text-sm">chevron_left</span>';
   prev.disabled = currentPage === 1;
   prev.onclick = () => { if (currentPage > 1) { currentPage--; drawPager(); } };
@@ -256,15 +319,15 @@ function drawPager() {
   for (let i = 1; i <= pages; i++) {
     const b = document.createElement('button');
     b.className = i === currentPage
-      ? 'w-8 h-8 flex items-center justify-center rounded bg-primary text-white text-xs font-bold'
-      : 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant text-xs font-bold';
+      ? 'w-10 h-10 flex items-center justify-center rounded bg-primary text-white text-sm font-bold'
+      : 'w-10 h-10 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant text-sm font-bold';
     b.textContent = String(i);
     b.onclick = () => { currentPage = i; drawPager(); };
     controls.appendChild(b);
   }
 
   const next = document.createElement('button');
-  next.className = 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
+  next.className = 'w-10 h-10 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
   next.innerHTML = '<span class="material-symbols-outlined text-sm">chevron_right</span>';
   next.disabled = currentPage === pages;
   next.onclick = () => { if (currentPage < pages) { currentPage++; drawPager(); } };
@@ -273,18 +336,30 @@ function drawPager() {
 
 drawPager();
 
-const search = document.getElementById('table-search');
-if (search) {
-  search.addEventListener('input', (e) => {
-    const q = e.target.value.trim().toLowerCase();
-    filteredRows = rows.filter((r) => {
-      const name = r.querySelector('.item-name')?.textContent?.toLowerCase() || '';
-      return name.includes(q);
-    });
-    currentPage = 1;
-    drawPager();
+function applySearch(raw) {
+  const q = raw.trim().toLowerCase();
+  filteredRows = rows.filter((r) => {
+    const name = r.querySelector('.item-name')?.textContent?.toLowerCase() || '';
+    return name.includes(q);
   });
+  mobileCards.forEach((card) => {
+    const name = (card.dataset.itemName || '').toLowerCase();
+    card.style.display = name.includes(q) ? '' : 'none';
+  });
+  currentPage = 1;
+  drawPager();
 }
+
+const searchInputs = Array.from(document.querySelectorAll('.table-search-input'));
+searchInputs.forEach((input) => {
+  input.addEventListener('input', (e) => {
+    const value = e.target.value || '';
+    searchInputs.forEach((peer) => {
+      if (peer !== input) peer.value = value;
+    });
+    applySearch(value);
+  });
+});
 
 const series = JSON.parse(document.getElementById('series-json').textContent || '[]');
 const rangeControls = document.getElementById('range-controls');
@@ -292,7 +367,9 @@ function renderSeries(days) {
   const subset = series.slice(-days);
   const x = subset.map((d) => d.date);
   const y = subset.map((d) => d.avg_price);
-  Plotly.newPlot('main-chart', [{ x, y, type: 'scatter', mode: 'lines+markers', line: { color: '#000000', width: 3, shape: 'spline' }, marker: { color: '#000000', size: 6 }, hovertemplate: '<b>PKR %{y:.0f}</b><br>%{x}<extra></extra>' }], { margin: { l: 42, r: 16, t: 18, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: 'Inter, sans-serif', color: '#45464c' }, xaxis: { showgrid: false, zeroline: false, tickangle: -35 }, yaxis: { gridcolor: '#dce2f3', zeroline: false }, hovermode: 'x unified' }, { responsive: true, displayModeBar: false });
+  const tickAngle = window.innerWidth < 640 ? -20 : -35;
+  const leftMargin = window.innerWidth < 640 ? 34 : 42;
+  Plotly.newPlot('main-chart', [{ x, y, type: 'scatter', mode: 'lines+markers', line: { color: '#000000', width: 3, shape: 'spline' }, marker: { color: '#000000', size: 6 }, hovertemplate: '<b>PKR %{y:.0f}</b><br>%{x}<extra></extra>' }], { margin: { l: leftMargin, r: 16, t: 18, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: 'Inter, sans-serif', color: '#45464c' }, xaxis: { showgrid: false, zeroline: false, tickangle: tickAngle }, yaxis: { gridcolor: '#dce2f3', zeroline: false }, hovermode: 'x unified' }, { responsive: true, displayModeBar: false });
   const headlinePrice = document.getElementById('headline-price');
   const headlineChange = document.getElementById('headline-change');
   const headlineWrap = document.getElementById('headline-change-wrap');
@@ -302,9 +379,9 @@ function renderSeries(days) {
   if (y.length > 1 && y[y.length - 2] > 0) delta = ((y[y.length - 1] - y[y.length - 2]) / y[y.length - 2]) * 100;
   const sign = delta > 0 ? '+' : '';
   headlineChange.textContent = `${sign}${delta.toFixed(2)}% vs previous point`;
-  if (delta > 0.3) { headlineWrap.className = 'flex items-center text-xs font-semibold justify-end text-error'; headlineIcon.textContent = 'trending_up'; }
-  else if (delta < -0.3) { headlineWrap.className = 'flex items-center text-xs font-semibold justify-end text-primary'; headlineIcon.textContent = 'trending_down'; }
-  else { headlineWrap.className = 'flex items-center text-xs font-semibold justify-end text-on-surface-variant'; headlineIcon.textContent = 'trending_flat'; }
+  if (delta > 0.3) { headlineWrap.className = 'flex items-center text-xs font-semibold justify-start sm:justify-end text-error'; headlineIcon.textContent = 'trending_up'; }
+  else if (delta < -0.3) { headlineWrap.className = 'flex items-center text-xs font-semibold justify-start sm:justify-end text-primary'; headlineIcon.textContent = 'trending_down'; }
+  else { headlineWrap.className = 'flex items-center text-xs font-semibold justify-start sm:justify-end text-on-surface-variant'; headlineIcon.textContent = 'trending_flat'; }
 }
 renderSeries(7);
 if (rangeControls) {

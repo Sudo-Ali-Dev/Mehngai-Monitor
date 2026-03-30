@@ -38,8 +38,9 @@
 </head>
 <body class="bg-surface text-on-surface antialiased min-h-screen">
 <header class="bg-[#e7eefe] text-[#000000] flex flex-wrap justify-between items-center gap-3 w-full px-4 sm:px-6 py-3 sticky top-0 z-50">
-  <div class="flex items-center gap-8">
-    <span class="text-lg sm:text-xl font-bold tracking-tight text-[#151c27]">Mehngai Monitor</span>
+  <div class="flex items-center gap-4">
+    <a href="/trend/{{ category }}/{{ item_name|replace(' ', '%20') }}" class="lg:hidden text-base font-semibold tracking-tight text-[#151c27]">Mehngai Monitor</a>
+    <span class="hidden lg:inline text-lg sm:text-xl font-bold tracking-tight text-[#151c27]">Mehngai Monitor</span>
     <nav class="hidden lg:flex items-center gap-6">
       <a class="text-[#45464c] hover:text-[#000000]" href="/dashboard?category={{ category }}&view=today">Dashboard</a>
       <a class="text-[#45464c] hover:text-[#000000]" href="/analytics?category={{ category }}">Analytics</a>
@@ -54,7 +55,15 @@
   </div>
 </header>
 
-<main class="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
+<main class="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 pb-28 md:pb-6">
+  <section class="md:hidden space-y-3">
+    <div class="flex items-center gap-2 overflow-x-auto pb-1">
+      <a href="/trend/fruits/{{ item_name|replace(' ', '%20') }}" class="shrink-0 px-3 py-2 rounded-lg text-xs font-semibold {% if category == 'fruits' %}bg-primary text-on-primary{% else %}bg-surface-container-low text-on-surface-variant{% endif %}">Fruits</a>
+      <a href="/trend/vegetables/{{ item_name|replace(' ', '%20') }}" class="shrink-0 px-3 py-2 rounded-lg text-xs font-semibold {% if category == 'vegetables' %}bg-primary text-on-primary{% else %}bg-surface-container-low text-on-surface-variant{% endif %}">Vegetables</a>
+      <a href="/trend/poultry/{{ item_name|replace(' ', '%20') }}" class="shrink-0 px-3 py-2 rounded-lg text-xs font-semibold {% if category == 'poultry' %}bg-primary text-on-primary{% else %}bg-surface-container-low text-on-surface-variant{% endif %}">Poultry</a>
+    </div>
+  </section>
+
   <section class="bg-surface-container-lowest rounded-xl p-4 sm:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
       <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">{{ item_name }}</h1>
@@ -105,7 +114,30 @@
     <div class="p-5 border-b border-surface-container-low">
       <h3 class="font-semibold">Historical Records</h3>
     </div>
-    <div class="overflow-x-auto">
+    <div class="md:hidden divide-y divide-surface-container-low">
+      {% for row in history|reverse %}
+      <div class="p-4">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-semibold">{{ row.date }}</p>
+          <span class="text-sm font-semibold">PKR {{ ((row.min_price or 0) + (row.max_price or row.min_price or 0)) / 2 | round | int }}</span>
+        </div>
+        <div class="grid {% if category == 'poultry' %}grid-cols-1{% else %}grid-cols-2{% endif %} gap-2 text-xs">
+          <div class="rounded-lg bg-surface-container-low px-3 py-2">
+            <p class="text-on-surface-variant">Price 1</p>
+            <p class="font-semibold mt-1">{% if row.min_price %}PKR {{ row.min_price|int }}{% else %}-{% endif %}</p>
+          </div>
+          {% if category != 'poultry' %}
+          <div class="rounded-lg bg-surface-container-low px-3 py-2">
+            <p class="text-on-surface-variant">Price 2</p>
+            <p class="font-semibold mt-1">{% if row.max_price %}PKR {{ row.max_price|int }}{% else %}-{% endif %}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="hidden md:block overflow-x-auto">
       <table class="min-w-[640px] w-full text-left border-collapse">
         <thead class="bg-surface-container-low">
           <tr>
@@ -136,6 +168,12 @@
   {% endif %}
 </main>
 
+<div class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-outline-variant/10 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex justify-around items-center z-50">
+  <a href="/dashboard?category={{ category }}&view=today" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">dashboard</span><span class="text-[10px] font-bold">Home</span></a>
+  <a href="/analytics?category={{ category }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">list_alt</span><span class="text-[10px] font-bold">Rates</span></a>
+  <a href="/trend/{{ category }}/{{ item_name|replace(' ', '%20') }}" class="flex flex-col items-center gap-1 text-primary"><span class="material-symbols-outlined">query_stats</span><span class="text-[10px] font-bold">Trends</span></a>
+</div>
+
 <script id="trend-series-json" type="application/json">{{ history_series | tojson }}</script>
 <script id="history-json" type="application/json">{{ history | tojson }}</script>
 <script>
@@ -158,12 +196,14 @@
       hovertemplate: '<b>PKR %{y:.0f}</b><br>%{x}<extra></extra>'
     };
 
+    const tickAngle = window.innerWidth < 640 ? -20 : -35;
+    const leftMargin = window.innerWidth < 640 ? 34 : 50;
     const layout = {
-      margin: { l: 50, r: 20, t: 10, b: 45 },
+      margin: { l: leftMargin, r: 20, t: 10, b: 45 },
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: '#f0f3ff',
       font: { family: 'Inter, sans-serif', color: '#45464c' },
-      xaxis: { tickfont: { size: 10 }, showgrid: false, zeroline: false, tickangle: -35 },
+      xaxis: { tickfont: { size: 10 }, showgrid: false, zeroline: false, tickangle: tickAngle },
       yaxis: { gridcolor: '#dce2f3', zeroline: false, tickfont: { size: 10 } },
       hovermode: 'x unified'
     };

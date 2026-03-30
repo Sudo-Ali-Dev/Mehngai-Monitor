@@ -127,7 +127,8 @@
 
 <main class="flex-1 min-w-0 flex flex-col overflow-hidden">
 <header class="flex flex-wrap justify-between items-center gap-3 w-full px-4 sm:px-6 py-3 bg-[#e7eefe] sticky top-0 z-40">
-  <div class="flex items-center gap-8">
+  <div class="flex items-center gap-4">
+    <a href="/dashboard?category={{ category }}&view={{ view }}" class="lg:hidden text-base font-semibold tracking-tight text-[#151c27]">Mehngai Monitor</a>
     <nav class="hidden lg:flex items-center gap-6">
       <a class="text-[#000000] border-b-2 border-[#000000] pb-1" href="/dashboard?category={{ category }}&view={{ view }}">Dashboard</a>
       <a class="text-[#45464c] hover:text-[#000000]" href="/analytics?category={{ category }}">Analytics</a>
@@ -137,13 +138,25 @@
   <div class="flex items-center gap-4">
     <div class="relative group hidden sm:block">
       <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">search</span>
-      <input class="pl-9 pr-4 py-1.5 bg-surface-container-highest border-none rounded-md text-sm w-44 md:w-64" placeholder="Search commodities..." type="text" id="table-search"/>
+      <input class="table-search-input pl-9 pr-4 py-1.5 bg-surface-container-highest border-none rounded-md text-sm w-44 md:w-64" placeholder="Search commodities..." type="text" id="table-search-desktop"/>
       <div class="absolute bottom-0 left-0 w-0 h-[2px] bg-primary group-focus-within:w-full transition-all duration-300"></div>
     </div>
   </div>
 </header>
 
-<section class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 pb-24 md:pb-10">
+<section class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 pb-28 md:pb-10">
+  <div class="md:hidden space-y-3">
+    <div class="flex items-center gap-2 overflow-x-auto pb-1">
+      {% for cat in categories %}
+      <a href="/dashboard?category={{ cat }}&view={{ view }}" class="shrink-0 px-3 py-2 rounded-lg text-xs font-semibold {% if cat == category %}bg-primary text-on-primary{% else %}bg-surface-container-low text-on-surface-variant{% endif %}">{{ cat|capitalize }}</a>
+      {% endfor %}
+    </div>
+    <div class="relative">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">search</span>
+      <input class="table-search-input w-full pl-9 pr-4 py-2 bg-surface-container-highest border-none rounded-lg text-sm" placeholder="Search commodities..." type="text" id="table-search-mobile"/>
+    </div>
+  </div>
+
   <div class="flex justify-between items-start sm:items-end gap-4 flex-wrap">
     <div class="space-y-1">
       <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/60">Local Market Registry</span>
@@ -207,7 +220,46 @@
       <h3 class="text-lg font-semibold">{{ category|capitalize }} - Morning Auction</h3>
       <div class="text-xs text-on-surface-variant">As of {{ latest_date or 'N/A' }}</div>
     </div>
-    <div class="w-full overflow-x-auto">
+
+    <div class="md:hidden divide-y divide-outline-variant/10" id="mobile-rates-list">
+      {% for row in rates %}
+      <a href="/trend/{{ category }}/{{ row.item_name|replace(' ', '%20') }}" class="mobile-rate-card block p-4 hover:bg-surface-container-low transition-colors" data-item-name="{{ row.item_name|lower }}">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-sm font-semibold text-on-background">{{ row.item_name }}</p>
+            <p class="text-xs text-on-surface-variant mt-1">{{ row.unit or '-' }}</p>
+          </div>
+          <div>
+            {% if row.trend == 'up' %}
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-error-container text-on-error-container text-[11px] font-bold"><span class="material-symbols-outlined text-sm">arrow_upward</span>UP</span>
+            {% elif row.trend == 'down' %}
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold"><span class="material-symbols-outlined text-sm">arrow_downward</span>DOWN</span>
+            {% else %}
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-bold"><span class="material-symbols-outlined text-sm">horizontal_rule</span>STABLE</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="grid {% if category == 'poultry' %}grid-cols-2{% else %}grid-cols-3{% endif %} gap-2 mt-3 text-xs">
+          <div class="rounded-lg bg-surface-container-low px-2 py-2">
+            <p class="text-on-surface-variant">Price 1</p>
+            <p class="font-semibold mt-1">{% if row.min_price %}{{ "%.2f"|format(row.min_price) }}{% else %}-{% endif %}</p>
+          </div>
+          {% if category != 'poultry' %}
+          <div class="rounded-lg bg-surface-container-low px-2 py-2">
+            <p class="text-on-surface-variant">Price 2</p>
+            <p class="font-semibold mt-1">{% if row.max_price %}{{ "%.2f"|format(row.max_price) }}{% else %}-{% endif %}</p>
+          </div>
+          {% endif %}
+          <div class="rounded-lg bg-surface-container-low px-2 py-2">
+            <p class="text-on-surface-variant">Updated</p>
+            <p class="font-semibold mt-1">{{ latest_date or 'N/A' }}</p>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="hidden md:block w-full overflow-x-auto">
       <table class="min-w-[760px] w-full text-left border-collapse" id="dash-table">
         <thead class="bg-surface-container-low">
           <tr>
@@ -252,7 +304,7 @@
         </tbody>
       </table>
     </div>
-    <div class="px-4 sm:px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
+    <div class="hidden md:flex px-4 sm:px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
       <p class="text-xs text-on-surface-variant" id="pager-label">Showing <span class="font-bold">0</span> of {{ rates|length }} {{ category }} items</p>
       <div class="flex gap-1 overflow-x-auto max-w-full" id="pager-controls"></div>
     </div>
@@ -278,11 +330,15 @@
 </main>
 </div>
 
-<div class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-outline-variant/10 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex justify-between items-center z-50">
+{% set trend_target = highest_items[0].item_name if highest_items else (rates[0].item_name if rates else None) %}
+<div class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-outline-variant/10 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex justify-around items-center z-50">
   <a href="/dashboard?category={{ category }}&view={{ view }}" class="flex flex-col items-center gap-1 text-primary"><span class="material-symbols-outlined">dashboard</span><span class="text-[10px] font-bold">Home</span></a>
   <a href="/analytics?category={{ category }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">list_alt</span><span class="text-[10px] font-bold">Rates</span></a>
-  <a href="/trend/{{ category }}/{{ highest_items[0].item_name|replace(' ', '%20') if highest_items else '' }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">query_stats</span><span class="text-[10px] font-bold">Trends</span></a>
-  <button class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60" type="button"><span class="material-symbols-outlined">person</span><span class="text-[10px] font-bold">Profile</span></button>
+  {% if trend_target %}
+  <a href="/trend/{{ category }}/{{ trend_target|replace(' ', '%20') }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">query_stats</span><span class="text-[10px] font-bold">Trends</span></a>
+  {% else %}
+  <a href="/analytics?category={{ category }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">query_stats</span><span class="text-[10px] font-bold">Trends</span></a>
+  {% endif %}
 </div>
 
 <script id="series-json" type="application/json">{{ category_series | tojson }}</script>
@@ -292,6 +348,7 @@
   });
 
   const rows = Array.from(document.querySelectorAll('#dash-table-body tr'));
+  const mobileCards = Array.from(document.querySelectorAll('.mobile-rate-card'));
   const pageSize = 8;
   let currentPage = 1;
   let filteredRows = [...rows];
@@ -318,7 +375,7 @@
     label.innerHTML = `Showing <span class="font-bold">${filteredRows.length ? start + 1 : 0}-${end}</span> of ${filteredRows.length} {{ category }} items`;
 
     const prev = document.createElement('button');
-    prev.className = 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
+    prev.className = 'w-10 h-10 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
     prev.innerHTML = '<span class="material-symbols-outlined text-sm">chevron_left</span>';
     prev.disabled = currentPage === 1;
     prev.onclick = () => { if (currentPage > 1) { currentPage--; drawPager(); } };
@@ -327,15 +384,15 @@
     for (let i = 1; i <= pages; i++) {
       const b = document.createElement('button');
       b.className = i === currentPage
-        ? 'w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary text-xs font-bold'
-        : 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant text-xs font-bold';
+        ? 'w-10 h-10 flex items-center justify-center rounded bg-primary text-on-primary text-sm font-bold'
+        : 'w-10 h-10 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant text-sm font-bold';
       b.textContent = String(i);
       b.onclick = () => { currentPage = i; drawPager(); };
       controls.appendChild(b);
     }
 
     const next = document.createElement('button');
-    next.className = 'w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
+    next.className = 'w-10 h-10 flex items-center justify-center rounded bg-surface-container-lowest border border-outline-variant/10 text-on-surface-variant';
     next.innerHTML = '<span class="material-symbols-outlined text-sm">chevron_right</span>';
     next.disabled = currentPage === pages;
     next.onclick = () => { if (currentPage < pages) { currentPage++; drawPager(); } };
@@ -344,18 +401,30 @@
 
   drawPager();
 
-  const search = document.getElementById('table-search');
-  if (search) {
-    search.addEventListener('input', (e) => {
-      const q = e.target.value.trim().toLowerCase();
-      filteredRows = rows.filter((r) => {
-        const name = r.querySelector('.item-name')?.textContent?.toLowerCase() || '';
-        return name.includes(q);
-      });
-      currentPage = 1;
-      drawPager();
+  function applySearch(raw) {
+    const q = raw.trim().toLowerCase();
+    filteredRows = rows.filter((r) => {
+      const name = r.querySelector('.item-name')?.textContent?.toLowerCase() || '';
+      return name.includes(q);
     });
+    mobileCards.forEach((card) => {
+      const name = (card.dataset.itemName || '').toLowerCase();
+      card.style.display = name.includes(q) ? '' : 'none';
+    });
+    currentPage = 1;
+    drawPager();
   }
+
+  const searchInputs = Array.from(document.querySelectorAll('.table-search-input'));
+  searchInputs.forEach((input) => {
+    input.addEventListener('input', (e) => {
+      const value = e.target.value || '';
+      searchInputs.forEach((peer) => {
+        if (peer !== input) peer.value = value;
+      });
+      applySearch(value);
+    });
+  });
 
   const series = JSON.parse(document.getElementById('series-json').textContent || '[]');
   const barsHost = document.getElementById('vol-bars');
