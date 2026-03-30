@@ -37,9 +37,9 @@
 </style>
 </head>
 <body class="bg-surface text-on-surface antialiased min-h-screen">
-<header class="bg-[#e7eefe] text-[#000000] flex justify-between items-center w-full px-6 py-3 sticky top-0 z-50">
+<header class="bg-[#e7eefe] text-[#000000] flex flex-wrap justify-between items-center gap-3 w-full px-4 sm:px-6 py-3 sticky top-0 z-50">
   <div class="flex items-center gap-8">
-    <span class="text-xl font-bold tracking-tight text-[#151c27]">Mehngai Monitor</span>
+    <span class="text-lg sm:text-xl font-bold tracking-tight text-[#151c27]">Mehngai Monitor</span>
     <nav class="hidden lg:flex items-center gap-6">
       <a class="text-[#45464c] hover:text-[#000000]" href="/dashboard?category={{ category }}&view=today">Dashboard</a>
       <a class="text-[#45464c] hover:text-[#000000]" href="/analytics?category={{ category }}">Analytics</a>
@@ -47,27 +47,27 @@
     </nav>
   </div>
   <div class="flex items-center gap-3">
-    <span class="px-3 py-1 rounded-md bg-surface-container-highest text-xs font-semibold uppercase tracking-wide">{{ category }}</span>
+    <span class="px-3 py-1 rounded-md bg-surface-container-highest text-[11px] font-semibold uppercase tracking-wide">{{ category }}</span>
     <a href="/dashboard?category={{ category }}&view=today" class="h-9 w-9 rounded-lg bg-white grid place-items-center hover:bg-surface-container-low transition-colors" aria-label="Back to dashboard">
       <span class="material-symbols-outlined">arrow_back</span>
     </a>
   </div>
 </header>
 
-<main class="p-6 max-w-7xl mx-auto space-y-6">
-  <section class="bg-surface-container-lowest rounded-xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<main class="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
+  <section class="bg-surface-container-lowest rounded-xl p-4 sm:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
-      <h1 class="text-3xl font-bold tracking-tight">{{ item_name }}</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">{{ item_name }}</h1>
       <p class="text-on-surface-variant mt-1">Historical trend view across available market sheets{% if unit %} ({{ unit }}){% endif %}.</p>
     </div>
-    <a href="/dashboard?category={{ category }}&view=today" class="custom-gradient-btn text-white text-sm font-semibold px-4 py-2 rounded-md inline-flex items-center gap-2">
+    <a href="/dashboard?category={{ category }}&view=today" class="custom-gradient-btn text-white text-sm font-semibold px-4 py-2 rounded-md inline-flex items-center justify-center gap-2 w-full sm:w-auto">
       <span class="material-symbols-outlined text-sm">grid_view</span>
       Back to Dashboard
     </a>
   </section>
 
   {% if history %}
-  <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <article class="bg-surface-container-lowest rounded-xl p-4">
       <p class="text-xs text-on-surface-variant">Latest Average</p>
       <p class="text-2xl font-bold mt-1">PKR {{ latest_avg|round|int }}</p>
@@ -88,17 +88,17 @@
     </article>
   </section>
 
-  <section class="bg-surface-container-lowest rounded-xl p-6">
-    <div class="flex items-center justify-between mb-4">
+  <section class="bg-surface-container-lowest rounded-xl p-4 sm:p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <h2 class="text-lg font-semibold">Price History</h2>
-      <div class="bg-surface-container-highest p-1 rounded-lg flex" id="trend-range-controls">
-        <button data-days="14" class="px-3 py-1 text-xs font-semibold bg-primary text-white rounded-md">2W</button>
-        <button data-days="30" class="px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface">1M</button>
-        <button data-days="90" class="px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface">3M</button>
-        <button data-days="365" class="px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface">1Y</button>
+      <div class="bg-surface-container-highest p-1 rounded-lg flex overflow-x-auto whitespace-nowrap max-w-full" id="trend-range-controls">
+        <button data-days="14" class="px-3 py-1 text-xs font-semibold bg-primary text-white rounded-md shrink-0">2W</button>
+        <button data-days="30" class="px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface rounded-md shrink-0">1M</button>
+        <button data-days="90" class="px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface rounded-md shrink-0">3M</button>
+        <button data-days="365" class="px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface rounded-md shrink-0">1Y</button>
       </div>
     </div>
-    <div id="trend-chart" class="w-full h-[430px]"></div>
+    <div id="trend-chart" class="w-full h-[320px] sm:h-[430px]"></div>
   </section>
 
   <section class="bg-surface-container-lowest rounded-xl overflow-hidden">
@@ -106,7 +106,7 @@
       <h3 class="font-semibold">Historical Records</h3>
     </div>
     <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
+      <table class="min-w-[640px] w-full text-left border-collapse">
         <thead class="bg-surface-container-low">
           <tr>
             <th class="px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Date</th>
@@ -129,7 +129,7 @@
     </div>
   </section>
   {% else %}
-  <section class="bg-surface-container-lowest rounded-xl p-12 text-center">
+  <section class="bg-surface-container-lowest rounded-xl p-8 sm:p-12 text-center">
     <p class="text-lg font-semibold">No historical data yet for this item.</p>
     <p class="text-sm text-on-surface-variant mt-2">Try another item from the category board.</p>
   </section>
@@ -208,9 +208,9 @@
         const days = Number(btn.dataset.days || 14);
         renderTrend(days);
         trendRangeControls.querySelectorAll('button').forEach((b) => {
-          b.className = 'px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface';
+          b.className = 'px-3 py-1 text-xs font-semibold text-on-surface-variant hover:text-on-surface rounded-md shrink-0';
         });
-        btn.className = 'px-3 py-1 text-xs font-semibold bg-primary text-white rounded-md';
+        btn.className = 'px-3 py-1 text-xs font-semibold bg-primary text-white rounded-md shrink-0';
       });
     });
   }

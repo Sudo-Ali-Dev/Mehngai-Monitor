@@ -71,8 +71,8 @@
   .glass-panel { background: rgba(240, 243, 255, 0.8); backdrop-filter: blur(12px); }
 </style>
 </head>
-<body class="bg-surface text-on-surface antialiased overflow-hidden">
-<div class="flex h-screen w-full">
+<body class="bg-surface text-on-surface antialiased overflow-x-hidden">
+<div class="flex min-h-screen md:h-screen w-full">
 <aside class="hidden md:flex flex-col h-screen p-4 space-y-2 bg-[#f9f9ff] w-64 text-sm font-medium text-[#000000]">
   <div class="px-4 pt-0 pb-3">
     <a href="/dashboard" class="flex items-center gap-2.5 group">
@@ -125,8 +125,8 @@
   </div>
 </aside>
 
-<main class="flex-1 flex flex-col overflow-hidden">
-<header class="flex justify-between items-center w-full px-6 py-3 bg-[#e7eefe]">
+<main class="flex-1 min-w-0 flex flex-col overflow-hidden">
+<header class="flex flex-wrap justify-between items-center gap-3 w-full px-4 sm:px-6 py-3 bg-[#e7eefe] sticky top-0 z-40">
   <div class="flex items-center gap-8">
     <nav class="hidden lg:flex items-center gap-6">
       <a class="text-[#000000] border-b-2 border-[#000000] pb-1" href="/dashboard?category={{ category }}&view={{ view }}">Dashboard</a>
@@ -135,28 +135,28 @@
     </nav>
   </div>
   <div class="flex items-center gap-4">
-    <div class="relative group">
+    <div class="relative group hidden sm:block">
       <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">search</span>
-      <input class="pl-9 pr-4 py-1.5 bg-surface-container-highest border-none rounded-md text-sm w-64" placeholder="Search commodities..." type="text" id="table-search"/>
+      <input class="pl-9 pr-4 py-1.5 bg-surface-container-highest border-none rounded-md text-sm w-44 md:w-64" placeholder="Search commodities..." type="text" id="table-search"/>
       <div class="absolute bottom-0 left-0 w-0 h-[2px] bg-primary group-focus-within:w-full transition-all duration-300"></div>
     </div>
   </div>
 </header>
 
-<section class="flex-1 overflow-y-auto p-6 space-y-8">
-  <div class="flex justify-between items-end gap-4 flex-wrap">
+<section class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 pb-24 md:pb-10">
+  <div class="flex justify-between items-start sm:items-end gap-4 flex-wrap">
     <div class="space-y-1">
       <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/60">Local Market Registry</span>
-      <h2 class="text-4xl font-bold text-on-background tracking-tight">Lahore Daily Rates</h2>
+      <h2 class="text-2xl sm:text-4xl font-bold text-on-background tracking-tight">Lahore Daily Rates</h2>
     </div>
-    <div class="flex items-center gap-2 bg-surface-container-lowest p-1 rounded-xl shadow-sm">
-      <a href="/dashboard?category={{ category }}&view=today" class="px-4 py-2 text-xs font-bold rounded-lg {% if view == 'today' %}text-on-primary bg-primary{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">TODAY</a>
-      <a href="/dashboard?category={{ category }}&view=yesterday" class="px-4 py-2 text-xs font-bold rounded-lg {% if view == 'yesterday' %}text-on-primary bg-primary{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">YESTERDAY</a>
-      <a href="/dashboard?category={{ category }}&view=weekly" class="px-4 py-2 text-xs font-bold rounded-lg {% if view == 'weekly' %}text-on-primary bg-primary{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">WEEKLY</a>
+    <div class="flex items-center gap-2 bg-surface-container-lowest p-1 rounded-xl shadow-sm w-full sm:w-auto overflow-x-auto">
+      <a href="/dashboard?category={{ category }}&view=today" class="px-4 py-2 text-xs font-bold rounded-lg shrink-0 {% if view == 'today' %}text-on-primary bg-primary{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">TODAY</a>
+      <a href="/dashboard?category={{ category }}&view=yesterday" class="px-4 py-2 text-xs font-bold rounded-lg shrink-0 {% if view == 'yesterday' %}text-on-primary bg-primary{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">YESTERDAY</a>
+      <a href="/dashboard?category={{ category }}&view=weekly" class="px-4 py-2 text-xs font-bold rounded-lg shrink-0 {% if view == 'weekly' %}text-on-primary bg-primary{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">WEEKLY</a>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
     <div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/10">
       <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-3">Top Priced Item</p>
       <div class="h-[88px] flex flex-col justify-between">
@@ -208,7 +208,7 @@
       <div class="text-xs text-on-surface-variant">As of {{ latest_date or 'N/A' }}</div>
     </div>
     <div class="w-full overflow-x-auto">
-      <table class="w-full text-left border-collapse" id="dash-table">
+      <table class="min-w-[760px] w-full text-left border-collapse" id="dash-table">
         <thead class="bg-surface-container-low">
           <tr>
             <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Item Name</th>
@@ -252,14 +252,14 @@
         </tbody>
       </table>
     </div>
-    <div class="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex justify-between items-center">
+    <div class="px-4 sm:px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
       <p class="text-xs text-on-surface-variant" id="pager-label">Showing <span class="font-bold">0</span> of {{ rates|length }} {{ category }} items</p>
-      <div class="flex gap-1" id="pager-controls"></div>
+      <div class="flex gap-1 overflow-x-auto max-w-full" id="pager-controls"></div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10">
-    <div class="bg-[#f0f3ff] p-6 rounded-xl flex items-center gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pb-24 md:pb-10">
+    <div class="bg-[#f0f3ff] p-6 rounded-xl flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
       <div class="w-16 h-16 rounded-full bg-white/50 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-3xl text-primary">verified</span></div>
       <div>
         <h4 class="font-bold text-on-background">Official Market Source</h4>
@@ -278,7 +278,7 @@
 </main>
 </div>
 
-<div class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-outline-variant/10 px-6 py-3 flex justify-between items-center z-50">
+<div class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-outline-variant/10 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex justify-between items-center z-50">
   <a href="/dashboard?category={{ category }}&view={{ view }}" class="flex flex-col items-center gap-1 text-primary"><span class="material-symbols-outlined">dashboard</span><span class="text-[10px] font-bold">Home</span></a>
   <a href="/analytics?category={{ category }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">list_alt</span><span class="text-[10px] font-bold">Rates</span></a>
   <a href="/trend/{{ category }}/{{ highest_items[0].item_name|replace(' ', '%20') if highest_items else '' }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">query_stats</span><span class="text-[10px] font-bold">Trends</span></a>
