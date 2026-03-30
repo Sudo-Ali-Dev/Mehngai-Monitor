@@ -330,15 +330,10 @@
 </main>
 </div>
 
-{% set trend_target = highest_items[0].item_name if highest_items else (rates[0].item_name if rates else None) %}
 <div class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-outline-variant/10 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex justify-around items-center z-50">
   <a href="/dashboard?category={{ category }}&view={{ view }}" class="flex flex-col items-center gap-1 text-primary"><span class="material-symbols-outlined">dashboard</span><span class="text-[10px] font-bold">Home</span></a>
   <a href="/analytics?category={{ category }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">list_alt</span><span class="text-[10px] font-bold">Rates</span></a>
-  {% if trend_target %}
-  <a href="/trend/{{ category }}/{{ trend_target|replace(' ', '%20') }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">query_stats</span><span class="text-[10px] font-bold">Trends</span></a>
-  {% else %}
-  <a href="/analytics?category={{ category }}" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">query_stats</span><span class="text-[10px] font-bold">Trends</span></a>
-  {% endif %}
+  <a href="https://lahore.punjab.gov.pk/market_rates" target="_blank" rel="noreferrer" class="flex flex-col items-center gap-1 text-on-surface-variant opacity-60"><span class="material-symbols-outlined">open_in_new</span><span class="text-[10px] font-bold">Source</span></a>
 </div>
 
 <script id="series-json" type="application/json">{{ category_series | tojson }}</script>
