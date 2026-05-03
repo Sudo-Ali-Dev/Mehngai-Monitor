@@ -15,3 +15,4 @@
 {"ts": "2026-03-30T13:53:27.999343+00:00", "event": "skipped", "item": "Dates Irani", "reason": "duplicate item in same OCR result", "original": {"urdu_name": "کھجور ایرانی", "english_name": "Dates Irani", "price_1": 475, "price_2": 450}}
 {"ts": "2026-04-06T18:36:41.388539+00:00", "event": "skipped", "item": "Dates Irani", "reason": "duplicate item in same OCR result", "original": {"urdu_name": "کھجور ایرانی", "english_name": "Dates Irani", "price_1": 475, "price_2": 450}}
 {"ts": "2026-04-30T01:13:18.256034+00:00", "event": "skipped", "item": "Dates Irani", "reason": "duplicate item in same OCR result", "original": {"urdu_name": "کھجور ایرانی", "english_name": "Dates Irani", "price_1": 470, "price_2": 445}}
+{"ts": "2026-05-05T02:30:12.098951+00:00", "event": "skipped", "item": "Peach", "reason": "duplicate item in same OCR result", "original": {"urdu_name": "آڑو", "english_name": "Peach", "price_1": 55, "price_2": 52}}
