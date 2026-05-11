@@ -165,6 +165,38 @@ class TestNormalizeFull(unittest.TestCase):
         result = normalize(raw)
         self.assertEqual(result["unit"], "per kg")
 
+    def test_item_unit_inferred_from_name(self):
+        raw = self._make_result([
+            {
+                "english_name": "Banana (per dozen)",
+                "urdu_name": "کیلا",
+                "price_1": 120,
+                "price_2": 100,
+            },
+            {
+                "english_name": "Coconut (per piece)",
+                "urdu_name": "ناریل",
+                "price_1": 50,
+                "price_2": 45,
+            },
+        ])
+        result = normalize(raw)
+        units = {item["english_name"]: item["unit"] for item in result["items"]}
+        self.assertEqual(units["Banana"], "per dozen")
+        self.assertEqual(units["Coconut"], "per piece")
+
+    def test_banana_defaults_to_per_dozen(self):
+        raw = self._make_result([
+            {
+                "english_name": "Banana",
+                "urdu_name": "کیلا",
+                "price_1": 120,
+                "price_2": 100,
+            }
+        ])
+        result = normalize(raw)
+        self.assertEqual(result["items"][0]["unit"], "per dozen")
+
     def test_name_is_normalized(self):
         raw = self._make_result([{
             "english_name": "Apple Iranian",

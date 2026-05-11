@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from database import get_conn, init_db
-from normalizer import normalize_unit, normalize_name
+from normalizer import infer_item_unit, normalize_unit, normalize_name
 
 
 def migrate():
@@ -53,7 +53,8 @@ def migrate():
 
             for item in items:
                 new_name = normalize_name(item["item_name"])
-                new_unit = normalize_unit(item["unit"])
+                base_unit = normalize_unit(item["unit"])
+                new_unit = infer_item_unit(category, new_name, item["item_name"], base_unit)
                 orig_id  = item["id"]
 
                 norm_key = new_name.lower()

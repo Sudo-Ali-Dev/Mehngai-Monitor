@@ -156,7 +156,7 @@ def save_to_db(data: dict, date: str, category: str):
                         item["english_name"],
                         item.get("price_1"),
                         item.get("price_2"),
-                        data.get("unit", "per kg"),
+                        item.get("unit") or data.get("unit") or "per kg",
                         "retail",
                     ),
                 )

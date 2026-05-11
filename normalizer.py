@@ -60,6 +60,25 @@ def normalize_unit(raw: str | None) -> str:
     return "per kg"   # safe default
 
 
+def infer_unit_from_item_name(raw_name: str | None) -> str | None:
+    """Infer a unit from an item name when unit hints are embedded."""
+    if not raw_name:
+        return None
+    lower = raw_name.lower().strip()
+    for fragment, canonical in _UNIT_MAP:
+        if fragment in lower:
+            return canonical
+    return None
+
+
+def infer_item_unit(category: str, name: str, raw_name: str | None, default_unit: str) -> str:
+    """Return the most likely unit for a single item."""
+    unit = infer_unit_from_item_name(raw_name) or infer_unit_from_item_name(name)
+    if not unit and category == "fruits" and name.lower().startswith("banana"):
+        unit = "per dozen"
+    return unit or default_unit
+
+
 # ── Item name canonicalization ───────────────────────────────────────────────
 
 # (lowercased key) → canonical title-case value
@@ -253,6 +272,13 @@ def normalize(data: dict) -> dict:
             raw_item.get("urdu_name", ""),
         )
 
+        item_unit = infer_item_unit(
+            category,
+            name,
+            raw_item.get("english_name"),
+            unit,
+        )
+
         # ── Deduplication ────────────────────────────────────────────────
         key = name.lower()
         if key in seen_names:
@@ -281,6 +307,7 @@ def normalize(data: dict) -> dict:
             "urdu_name":    raw_item.get("urdu_name", ""),
             "price_1":      p1,
             "price_2":      p2,
+            "unit":         item_unit,
         })
 
     return {
