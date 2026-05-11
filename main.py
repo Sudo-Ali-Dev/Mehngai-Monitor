@@ -1,4 +1,7 @@
 import os
+from urllib.parse import quote, urlencode
+from xml.sax.saxutils import escape
+
 from dotenv import load_dotenv
 
 load_dotenv()  # Loads GEMINI_API_KEY from .env file
@@ -8,7 +11,7 @@ from scraper import run_scraper
 from ocr import run_ocr
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from database import get_conn
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -20,6 +23,108 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 CATEGORIES = ["fruits", "vegetables", "poultry"]
+SITE_NAME = os.environ.get("SITE_NAME", "Mehngai Monitor")
+SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "http://mehngai.duckdns.org").rstrip("/")
+SITE_LANG = os.environ.get("SITE_LANG", "en")
+SITE_LOCALE = os.environ.get("SITE_LOCALE", "en_PK")
+TWITTER_CARD = os.environ.get("TWITTER_CARD", "summary")
+
+
+def _get_base_url(request: Request) -> str:
+    base_url = SITE_BASE_URL.strip()
+    if base_url:
+        return base_url
+    return str(request.base_url).rstrip("/")
+
+
+def _encode_path_segment(segment: str) -> str:
+    return quote(segment, safe="")
+
+
+def _build_url(base_url: str, path: str, params: dict | None = None) -> str:
+    url = f"{base_url}{path}"
+    if params:
+        clean_params = {k: v for k, v in params.items() if v is not None}
+        query = urlencode(clean_params)
+        if query:
+            url = f"{url}?{query}"
+    return url
+
+
+def _seo_webpage_structured_data(
+    title: str,
+    description: str,
+    url: str,
+    base_url: str,
+    about: dict | None = None,
+) -> dict:
+    data = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": title,
+        "description": description,
+        "url": url,
+        "inLanguage": SITE_LANG,
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": SITE_NAME,
+            "url": f"{base_url}/",
+        },
+    }
+    if about:
+        data["about"] = about
+    return data
+
+
+def _build_seo_context(
+    request: Request,
+    title: str,
+    description: str,
+    path: str,
+    params: dict | None = None,
+    og_type: str = "website",
+    about: dict | None = None,
+    structured_data: dict | None = None,
+) -> dict:
+    base_url = _get_base_url(request)
+    canonical = _build_url(base_url, path, params)
+    if structured_data is None:
+        structured_data = _seo_webpage_structured_data(
+            title,
+            description,
+            canonical,
+            base_url,
+            about=about,
+        )
+
+    return {
+        "title": title,
+        "description": description,
+        "canonical": canonical,
+        "site_name": SITE_NAME,
+        "base_url": base_url,
+        "og_type": og_type,
+        "og_locale": SITE_LOCALE,
+        "twitter_card": TWITTER_CARD,
+        "structured_data": structured_data,
+    }
+
+
+def _sitemap_entry(
+    loc: str,
+    lastmod: str | None = None,
+    changefreq: str | None = None,
+    priority: str | None = None,
+) -> str:
+    parts = [f"<url><loc>{escape(loc)}</loc>"]
+    if lastmod:
+        parts.append(f"<lastmod>{escape(lastmod)}</lastmod>")
+    if changefreq:
+        parts.append(f"<changefreq>{escape(changefreq)}</changefreq>")
+    if priority:
+        parts.append(f"<priority>{escape(priority)}</priority>")
+    parts.append("</url>")
+    return "".join(parts)
 
 
 def _avg_price(min_price, max_price) -> float:
@@ -319,9 +424,31 @@ def index(request: Request, category: str = "fruits"):
     with get_conn() as conn:
         context = _dashboard_context(conn, category, None)
 
+    category_label = category.capitalize()
+    latest_date = context.get("latest_date")
+    date_suffix = f" for {latest_date}" if latest_date else ""
+    seo_title = f"{SITE_NAME} - {category_label} price analytics"
+    seo_description = (
+        f"Lahore {category_label} price analytics with volatility, sector performance, "
+        f"and top movers{date_suffix}."
+    )
+    seo_about = {
+        "@type": "Thing",
+        "name": f"{category_label} market prices",
+    }
+    seo = _build_seo_context(
+        request,
+        seo_title,
+        seo_description,
+        "/analytics",
+        params={"category": category},
+        about=seo_about,
+    )
+
     return templates.TemplateResponse("index.html", {
         "request": request,
         **context,
+        "seo": seo,
     })
 
 
@@ -332,9 +459,32 @@ def dashboard(request: Request, category: str = "fruits", view: str = "today"):
     with get_conn() as conn:
         context = _dashboard_page_context(conn, category, view)
 
+    category_label = category.capitalize()
+    latest_date = context.get("latest_date")
+    view_label = {"today": "Today", "yesterday": "Yesterday", "weekly": "Weekly"}.get(view, "Today")
+    date_suffix = f" for {latest_date}" if latest_date else ""
+    seo_title = f"{SITE_NAME} - {category_label} daily prices ({view_label})"
+    seo_description = (
+        f"Lahore {category_label} daily prices with movers and volatility. "
+        f"View: {view_label}{date_suffix}."
+    )
+    seo_about = {
+        "@type": "Thing",
+        "name": f"{category_label} daily prices",
+    }
+    seo = _build_seo_context(
+        request,
+        seo_title,
+        seo_description,
+        "/dashboard",
+        params={"category": category, "view": view},
+        about=seo_about,
+    )
+
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         **context,
+        "seo": seo,
     })
 
 
@@ -348,9 +498,25 @@ def by_date(request: Request, category: str, date: str):
     with get_conn() as conn:
         context = _dashboard_context(conn, category, date)
 
+    category_label = category.capitalize()
+    seo_title = f"{SITE_NAME} - {category_label} prices on {date}"
+    seo_description = f"Lahore {category_label} market prices for {date}."
+    seo_about = {
+        "@type": "Thing",
+        "name": f"{category_label} market prices",
+    }
+    seo = _build_seo_context(
+        request,
+        seo_title,
+        seo_description,
+        f"/date/{category}/{date}",
+        about=seo_about,
+    )
+
     return templates.TemplateResponse("index.html", {
         "request": request,
         **context,
+        "seo": seo,
     })
 
 
@@ -393,6 +559,27 @@ def item_trend(request: Request, category: str, item_name: str):
     # Extract units (usually consistent, we'll take the most recent one if present)
     unit = history[-1]["unit"] if history else ""
 
+    category_label = category.capitalize()
+    seo_title = f"{item_name} price trend - {SITE_NAME}"
+    seo_description = (
+        f"Historical {category_label} price trend for {item_name} in Lahore. "
+        f"Latest average PKR {round(latest_avg, 2)} with {sentiment.lower()} momentum."
+    )
+    item_slug = _encode_path_segment(item_name)
+    seo_about = {
+        "@type": "Product",
+        "name": item_name,
+        "category": category_label,
+    }
+    seo = _build_seo_context(
+        request,
+        seo_title,
+        seo_description,
+        f"/trend/{category}/{item_slug}",
+        og_type="article",
+        about=seo_about,
+    )
+
     return templates.TemplateResponse("trend.html", {
         "request": request,
         "category": category,
@@ -404,7 +591,70 @@ def item_trend(request: Request, category: str, item_name: str):
         "latest_change": round(latest_change, 2),
         "volatility": round(mean([abs(x) for x in pct_changes]), 2) if pct_changes else 0,
         "sentiment": sentiment,
+        "seo": seo,
     })
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+def robots_txt(request: Request):
+    base_url = _get_base_url(request)
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        f"Sitemap: {base_url}/sitemap.xml",
+    ]
+    return "\n".join(lines)
+
+
+@app.get("/sitemap.xml", response_class=Response)
+def sitemap_xml(request: Request):
+    base_url = _get_base_url(request)
+    urls: list[str] = []
+
+    with get_conn() as conn:
+        for cat in CATEGORIES:
+            latest_row = conn.execute(
+                "SELECT MAX(date) AS date FROM market_rates WHERE category = ?",
+                (cat,),
+            ).fetchone()
+            latest_date = latest_row["date"] if latest_row else None
+
+            for view in ("today", "yesterday", "weekly"):
+                loc = _build_url(base_url, "/dashboard", {"category": cat, "view": view})
+                urls.append(_sitemap_entry(loc, latest_date, "daily", "0.9"))
+
+            loc = _build_url(base_url, "/analytics", {"category": cat})
+            urls.append(_sitemap_entry(loc, latest_date, "daily", "0.8"))
+
+            date_rows = conn.execute(
+                """SELECT DISTINCT date FROM market_rates
+                   WHERE category = ?
+                   ORDER BY date DESC LIMIT 30""",
+                (cat,),
+            ).fetchall()
+            for row in date_rows:
+                date_value = row["date"]
+                loc = _build_url(base_url, f"/date/{cat}/{date_value}")
+                urls.append(_sitemap_entry(loc, date_value, "daily", "0.7"))
+
+            item_rows = conn.execute(
+                """SELECT item_name, MAX(date) AS date
+                   FROM market_rates
+                   WHERE category = ?
+                   GROUP BY item_name""",
+                (cat,),
+            ).fetchall()
+            for row in item_rows:
+                item_name = row["item_name"]
+                item_slug = _encode_path_segment(item_name)
+                loc = _build_url(base_url, f"/trend/{cat}/{item_slug}")
+                urls.append(_sitemap_entry(loc, row["date"], "weekly", "0.6"))
+
+    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    xml += "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">"
+    xml += "".join(urls)
+    xml += "</urlset>"
+    return Response(content=xml, media_type="application/xml")
 
 
 # ── Startup ────────────────────────────────────────────────────────────────────
