@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mehngai Monitor">
+  <rect width="64" height="64" rx="14" fill="#141b2b"/>
+  <path d="M14 40L26 28L34 34L46 20L52 24" stroke="#c0c6db" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="26" cy="28" r="3" fill="#c0c6db"/>
+  <circle cx="34" cy="34" r="3" fill="#c0c6db"/>
+  <circle cx="46" cy="20" r="3" fill="#ffffff"/>
+  <path d="M16 48h32" stroke="#c0c6db" stroke-width="3" stroke-linecap="round" opacity="0.45"/>
+</svg>

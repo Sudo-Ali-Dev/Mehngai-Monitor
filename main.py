@@ -11,6 +11,7 @@ from scraper import run_scraper
 from ocr import run_ocr
 import uvicorn
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from database import get_conn
@@ -20,6 +21,8 @@ import pytz
 from statistics import mean
 
 app = FastAPI()
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory="templates")
 
 CATEGORIES = ["fruits", "vegetables", "poultry"]
