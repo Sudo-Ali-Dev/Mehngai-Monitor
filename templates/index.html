@@ -2,7 +2,21 @@
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Mehngai Monitor – Price History &amp; Analytics</title>
+<title>{{ seo.title }}</title>
+<meta name="description" content="{{ seo.description }}"/>
+<meta name="robots" content="index,follow"/>
+<link rel="canonical" href="{{ seo.canonical }}"/>
+<meta property="og:site_name" content="{{ seo.site_name }}"/>
+<meta property="og:title" content="{{ seo.title }}"/>
+<meta property="og:description" content="{{ seo.description }}"/>
+<meta property="og:url" content="{{ seo.canonical }}"/>
+<meta property="og:type" content="{{ seo.og_type }}"/>
+{% if seo.og_locale %}<meta property="og:locale" content="{{ seo.og_locale }}"/>{% endif %}
+<meta name="twitter:card" content="{{ seo.twitter_card }}"/>
+<meta name="twitter:title" content="{{ seo.title }}"/>
+<meta name="twitter:description" content="{{ seo.description }}"/>
+<meta name="twitter:url" content="{{ seo.canonical }}"/>
+<script type="application/ld+json">{{ seo.structured_data | tojson }}</script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
