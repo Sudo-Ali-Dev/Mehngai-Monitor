@@ -445,11 +445,15 @@ def index(request: Request, category: str = "fruits"):
         about=seo_about,
     )
 
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        **context,
-        "seo": seo,
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "request": request,
+            **context,
+            "seo": seo,
+        },
+    )
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -481,11 +485,15 @@ def dashboard(request: Request, category: str = "fruits", view: str = "today"):
         about=seo_about,
     )
 
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
-        **context,
-        "seo": seo,
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="dashboard.html",
+        context={
+            "request": request,
+            **context,
+            "seo": seo,
+        },
+    )
 
 
 @app.get("/index")
@@ -513,11 +521,15 @@ def by_date(request: Request, category: str, date: str):
         about=seo_about,
     )
 
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        **context,
-        "seo": seo,
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "request": request,
+            **context,
+            "seo": seo,
+        },
+    )
 
 
 @app.get("/trend/{category}/{item_name}", response_class=HTMLResponse)
@@ -580,19 +592,23 @@ def item_trend(request: Request, category: str, item_name: str):
         about=seo_about,
     )
 
-    return templates.TemplateResponse("trend.html", {
-        "request": request,
-        "category": category,
-        "item_name": item_name,
-        "history": history,
-        "unit": unit,
-        "history_series": series,
-        "latest_avg": round(latest_avg, 2),
-        "latest_change": round(latest_change, 2),
-        "volatility": round(mean([abs(x) for x in pct_changes]), 2) if pct_changes else 0,
-        "sentiment": sentiment,
-        "seo": seo,
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="trend.html",
+        context={
+            "request": request,
+            "category": category,
+            "item_name": item_name,
+            "history": history,
+            "unit": unit,
+            "history_series": series,
+            "latest_avg": round(latest_avg, 2),
+            "latest_change": round(latest_change, 2),
+            "volatility": round(mean([abs(x) for x in pct_changes]), 2) if pct_changes else 0,
+            "sentiment": sentiment,
+            "seo": seo,
+        },
+    )
 
 
 @app.get("/robots.txt", response_class=PlainTextResponse)
